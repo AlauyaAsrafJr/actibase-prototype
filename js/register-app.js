@@ -1,6 +1,6 @@
 // Register — plain HTML/CSS/vanilla JS implementation. Same
 // state/render/data-action architecture as the other auth page
-// (admin-login-app.js): no framework, one form with a role picker and
+// (login-app.js): no framework, one form with a role picker and
 // a success step.
 
 const ROLE_CONTENT = {
@@ -31,16 +31,11 @@ function esc(value) {
 }
 
 function renderSuccess(rc) {
-  const needsSignIn = state.role === 'admin';
-  const message = needsSignIn
-    ? `Your ${esc(rc.roleLabel)} account is ready. Sign in to continue to your dashboard.`
-    : `Your ${esc(rc.roleLabel)} account is ready. Continue to your dashboard.`;
-  const buttonLabel = needsSignIn ? 'Go to sign in' : 'Go to dashboard';
   return `
     <div class="register-success-icon">${ICONS.check()}</div>
     <h1 style="font-size:26px;margin:0 0 8px">Account created</h1>
-    <p style="font-size:13.5px;opacity:0.65;margin:0 0 24px;line-height:1.6">${message}</p>
-    <button type="button" class="btn btn-primary btn-block" data-action="go-to-login">${esc(buttonLabel)}</button>
+    <p style="font-size:13.5px;opacity:0.65;margin:0 0 24px;line-height:1.6">Your ${esc(rc.roleLabel)} account is ready. Sign in to continue to your dashboard.</p>
+    <button type="button" class="btn btn-primary btn-block" data-action="go-to-login">Go to sign in</button>
   `;
 }
 
@@ -168,10 +163,7 @@ const actions = {
   'password-input': (el) => { state.password = el.value; state.error = ''; },
   'confirm-input': (el) => { state.confirmPassword = el.value; state.error = ''; },
   'agree-toggle': (el) => { state.agree = el.checked; state.error = ''; },
-  'go-to-login': () => {
-    const dest = { admin: 'index.html', coach: 'coach.html', player: 'player.html' }[state.role] || 'index.html';
-    window.location.href = dest;
-  },
+  'go-to-login': () => { window.location.href = 'index.html'; },
   'submit': () => {
     if (!state.name.trim() || !state.email.trim() || !state.password.trim()) {
       state.error = 'Fill in all required fields to continue.';

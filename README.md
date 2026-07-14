@@ -4,10 +4,12 @@ Dashboards and a login page for Actibase, each implementing a Claude
 Design prototype as a static HTML/CSS/vanilla-JS app — no framework, no
 build step:
 
-- **`index.html`** — Administrator login (the site root): email/password
-  form with validation, remember-me, and a forgot-password demo flow. A
-  successful sign-in redirects to `admin.html`.
-  ([design](https://claude.ai/design/p/5f49f0c0-d470-46ec-ab2c-a71c61eadfad?file=Admin+Login.dc.html))
+- **`index.html`** — Login (the site root): a role picker (Admin / Coach /
+  Player) that swaps the brand panel and form copy, email/password
+  validation, remember-me, a forgot-password demo flow, and a brief
+  loading state before routing to `admin.html`, `coach.html`, or
+  `player.html` depending on the selected role.
+  ([design](https://claude.ai/design/p/5f49f0c0-d470-46ec-ab2c-a71c61eadfad?file=Login.dc.html))
 - **`admin.html`** — Admin Module: manage users, players, attendance
   sessions, reports, and archived records.
   ([design](https://claude.ai/design/p/5f49f0c0-d470-46ec-ab2c-a71c61eadfad?file=Admin+Module.dc.html))
@@ -31,7 +33,7 @@ with any static file server, e.g.:
 
 ```bash
 python3 -m http.server 8000
-# then open http://localhost:8000              (Admin login — site root)
+# then open http://localhost:8000              (Login — site root, pick a role)
 # or       http://localhost:8000/admin.html     (Admin dashboard)
 # or       http://localhost:8000/coach.html     (Coach)
 # or       http://localhost:8000/player.html    (Player)
@@ -46,7 +48,7 @@ python3 -m http.server 8000
 - `css/app.css` — layout classes: sidebar, topbar, pages, cards, modals, login (shared)
 - `js/icons.js` — inline SVG icon helpers (shared)
 - `js/data.js` / `js/coach-data.js` / `js/player-data.js` — mock data generators, one set per module
-- `js/admin-login-app.js` / `js/register-app.js` / `js/app.js` / `js/coach-app.js` / `js/player-app.js` —
+- `js/login-app.js` / `js/register-app.js` / `js/app.js` / `js/coach-app.js` / `js/player-app.js` —
   app state, render functions per page/modal, and event delegation
   (`data-action` attributes) that drives everything — no framework,
   just a mutable `state` object and a `render()` that rebuilds the DOM

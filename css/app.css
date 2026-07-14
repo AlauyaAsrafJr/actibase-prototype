@@ -201,6 +201,7 @@ a:hover { color: var(--color-accent-700); }
 .login-brand-footer { font-size: 12px; opacity: 0.5; }
 .login-form-panel { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px; }
 .login-form-wrap { width: 100%; max-width: 380px; }
+.login-form-wrap.wide { max-width: 400px; }
 .login-error { font-size: 13px; color: var(--color-accent-700); font-weight: 600; }
 .login-row { display: flex; align-items: center; justify-content: space-between; }
 .login-remember { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
@@ -209,4 +210,9 @@ a:hover { color: var(--color-accent-700); }
 
 @media (max-width: 760px) {
   .login-brand-panel { display: none; }
+}
+
+.register-success-icon {
+  width: 44px; height: 44px; background: var(--color-accent-100); color: var(--color-accent-700);
+  display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
 }

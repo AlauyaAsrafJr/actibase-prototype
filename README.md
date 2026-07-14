@@ -19,6 +19,10 @@ build step:
   attendance record, assigned training activities, evaluations received
   from their coach, and team statistics.
   ([design](https://claude.ai/design/p/5f49f0c0-d470-46ec-ab2c-a71c61eadfad?file=Player+Module.dc.html))
+- **`register.html`** — Create account: role picker (Admin / Coach /
+  Player) with role-specific copy and fields, validation, and a success
+  screen that links back to sign in.
+  ([design](https://claude.ai/design/p/5f49f0c0-d470-46ec-ab2c-a71c61eadfad?file=Register.dc.html))
 
 ## Running it
 
@@ -31,17 +35,18 @@ python3 -m http.server 8000
 # or       http://localhost:8000/admin.html     (Admin dashboard)
 # or       http://localhost:8000/coach.html     (Coach)
 # or       http://localhost:8000/player.html    (Player)
+# or       http://localhost:8000/register.html  (Create account)
 ```
 
 ## Structure
 
-- `index.html` / `admin.html` / `coach.html` / `player.html` —
+- `index.html` / `admin.html` / `coach.html` / `player.html` / `register.html` —
   page shells; each loads its own scripts below
 - `css/tokens.css` — Modernist design system tokens and component classes (shared)
 - `css/app.css` — layout classes: sidebar, topbar, pages, cards, modals, login (shared)
 - `js/icons.js` — inline SVG icon helpers (shared)
 - `js/data.js` / `js/coach-data.js` / `js/player-data.js` — mock data generators, one set per module
-- `js/admin-login-app.js` / `js/app.js` / `js/coach-app.js` / `js/player-app.js` —
+- `js/admin-login-app.js` / `js/register-app.js` / `js/app.js` / `js/coach-app.js` / `js/player-app.js` —
   app state, render functions per page/modal, and event delegation
   (`data-action` attributes) that drives everything — no framework,
   just a mutable `state` object and a `render()` that rebuilds the DOM

@@ -31,11 +31,16 @@ function esc(value) {
 }
 
 function renderSuccess(rc) {
+  const needsSignIn = state.role === 'admin';
+  const message = needsSignIn
+    ? `Your ${esc(rc.roleLabel)} account is ready. Sign in to continue to your dashboard.`
+    : `Your ${esc(rc.roleLabel)} account is ready. Continue to your dashboard.`;
+  const buttonLabel = needsSignIn ? 'Go to sign in' : 'Go to dashboard';
   return `
     <div class="register-success-icon">${ICONS.check()}</div>
     <h1 style="font-size:26px;margin:0 0 8px">Account created</h1>
-    <p style="font-size:13.5px;opacity:0.65;margin:0 0 24px;line-height:1.6">Your ${esc(rc.roleLabel)} account is ready. Sign in to continue to your dashboard.</p>
-    <button type="button" class="btn btn-primary btn-block" data-action="go-to-login">Go to sign in</button>
+    <p style="font-size:13.5px;opacity:0.65;margin:0 0 24px;line-height:1.6">${message}</p>
+    <button type="button" class="btn btn-primary btn-block" data-action="go-to-login">${esc(buttonLabel)}</button>
   `;
 }
 
@@ -53,37 +58,37 @@ function renderForm(rc) {
 
     <div class="dialog-field-stack" style="gap:16px">
       <div class="field">
-        <label>Full name</label>
+        <label for="registerNameInput">Full name</label>
         <input id="registerNameInput" type="text" class="input" placeholder="Jordan Reyes" value="${esc(state.name)}" data-action="name-input" />
       </div>
       <div class="field">
-        <label>Email</label>
+        <label for="registerEmailInput">Email</label>
         <input id="registerEmailInput" type="email" class="input" placeholder="${esc(rc.placeholder)}" value="${esc(state.email)}" data-action="email-input" />
       </div>
 
       ${state.role === 'coach' ? `
         <div class="field">
-          <label>Sport</label>
+          <label for="registerSportInput">Sport</label>
           <input id="registerSportInput" type="text" class="input" placeholder="e.g. Basketball" value="${esc(state.sport)}" data-action="sport-input" />
         </div>
       ` : ''}
       ${state.role === 'player' ? `
         <div class="field">
-          <label>Sport / Team</label>
+          <label for="registerSportInput">Sport / Team</label>
           <input id="registerSportInput" type="text" class="input" placeholder="e.g. Basketball" value="${esc(state.sport)}" data-action="sport-input" />
         </div>
       ` : ''}
 
       <div class="field">
-        <label>Password</label>
+        <label for="registerPasswordInput">Password</label>
         <input id="registerPasswordInput" type="password" class="input" placeholder="••••••••" value="${esc(state.password)}" data-action="password-input" />
       </div>
       <div class="field">
-        <label>Confirm password</label>
+        <label for="registerConfirmInput">Confirm password</label>
         <input id="registerConfirmInput" type="password" class="input" placeholder="••••••••" value="${esc(state.confirmPassword)}" data-action="confirm-input" />
       </div>
 
-      ${state.error ? `<div class="login-error">${esc(state.error)}</div>` : ''}
+      ${state.error ? `<div class="login-error" role="alert">${esc(state.error)}</div>` : ''}
 
       <label style="display:flex;align-items:flex-start;gap:8px;font-size:12.5px;cursor:pointer;line-height:1.5">
         <input type="checkbox" data-action="agree-toggle" ${state.agree ? 'checked' : ''} />
@@ -156,14 +161,17 @@ function render() {
 // ---- actions ----
 
 const actions = {
-  'select-role': (el) => { state.role = el.dataset.role; state.error = ''; },
+  'select-role': (el) => { state.role = el.dataset.role; state.sport = ''; state.error = ''; },
   'name-input': (el) => { state.name = el.value; state.error = ''; },
   'email-input': (el) => { state.email = el.value; state.error = ''; },
   'sport-input': (el) => { state.sport = el.value; state.error = ''; },
   'password-input': (el) => { state.password = el.value; state.error = ''; },
   'confirm-input': (el) => { state.confirmPassword = el.value; state.error = ''; },
   'agree-toggle': (el) => { state.agree = el.checked; state.error = ''; },
-  'go-to-login': () => { window.location.href = 'index.html'; },
+  'go-to-login': () => {
+    const dest = { admin: 'index.html', coach: 'coach.html', player: 'player.html' }[state.role] || 'index.html';
+    window.location.href = dest;
+  },
   'submit': () => {
     if (!state.name.trim() || !state.email.trim() || !state.password.trim()) {
       state.error = 'Fill in all required fields to continue.';

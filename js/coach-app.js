@@ -20,12 +20,12 @@ const state = {
   roster: makeRoster(), sessions: makeSessions(), evaluations: makeEvaluations(), reports: makeCoachReports(),
   activities: makeActivities(), activitiesCategoryFilter: 'all',
 
-  addActivityOpen: false, addActivityForm: { name: '', category: 'Ball Handling', customCategory: '', duration: '', difficulty: 'Beginner', description: '' },
+  addActivityOpen: false, addActivityForm: { name: '', category: 'Ball Handling', customCategory: '', duration: '', difficulty: 'Beginner', description: '' }, addActivityError: '',
   customCategories: [],
 
   assignModal: null,
   attendanceSession: 's0', attendanceMarks: {},
-  scheduleSessionOpen: false, scheduleForm: { date: '', time: '', type: 'Practice', location: 'Main Gym' },
+  scheduleSessionOpen: false, scheduleForm: { date: '', time: '', type: 'Practice', location: 'Main Gym' }, scheduleError: '',
   evalModal: null,
   genReportOpen: false, genReportForm: { name: '' },
   toast: null,
@@ -39,6 +39,10 @@ let toastTimer = null;
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function uid(prefix) {
+  return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
 function findPlayer(id) { return state.roster.find((p) => p.id === id); }
@@ -115,12 +119,12 @@ function renderTopbar() {
         <div class="topbar-subtitle">${esc(subtitle)}</div>
       </div>
       <div class="menu-anchor">
-        <button type="button" class="icon-btn" data-action="toggle-notif" aria-label="Notifications">
+        <button type="button" class="icon-btn" data-action="toggle-notif" aria-label="Notifications" aria-haspopup="true" aria-expanded="${state.notifOpen}" aria-controls="notifMenu">
           ${ICONS.bell()}
           <span class="badge-dot"></span>
         </button>
         ${state.notifOpen ? `
-          <div class="menu-panel notif-panel">
+          <div class="menu-panel notif-panel" id="notifMenu" role="menu">
             <div class="menu-panel-title">Notifications</div>
             <div class="menu-panel-item">Practice scheduled today at 4:00 PM — Main Gym.</div>
             <div class="menu-panel-item">3 players are due for a performance evaluation.</div>
@@ -129,7 +133,7 @@ function renderTopbar() {
         ` : ''}
       </div>
       <div class="menu-anchor">
-        <button type="button" class="profile-btn" data-action="toggle-profile">
+        <button type="button" class="profile-btn" data-action="toggle-profile" aria-haspopup="true" aria-expanded="${state.profileOpen}" aria-controls="profileMenu">
           <div class="avatar">MB</div>
           <div class="profile-name-block">
             <div class="profile-name">${esc(state.profile.name)}</div>
@@ -138,10 +142,10 @@ function renderTopbar() {
           ${ICONS.chevronDown()}
         </button>
         ${state.profileOpen ? `
-          <div class="menu-panel profile-panel">
-            <button type="button" class="menu-btn" data-action="go-page" data-page="profile">My profile</button>
-            <button type="button" class="menu-btn" data-action="go-page" data-page="settings">Account settings</button>
-            <button type="button" class="menu-btn danger" data-action="logout">Log out</button>
+          <div class="menu-panel profile-panel" id="profileMenu" role="menu">
+            <button type="button" class="menu-btn" data-action="go-page" data-page="profile" role="menuitem">My profile</button>
+            <button type="button" class="menu-btn" data-action="go-page" data-page="settings" role="menuitem">Account settings</button>
+            <button type="button" class="menu-btn danger" data-action="logout" role="menuitem">Log out</button>
           </div>
         ` : ''}
       </div>
@@ -245,7 +249,7 @@ function renderRoster() {
   }));
   return `
     <div class="card elev-sm table-card">
-      <table class="table">
+      <div class="table-scroll"><table class="table">
         <thead><tr><th>Name</th><th>Year</th><th>Position</th><th>Attendance</th><th>Last evaluation</th><th style="width:140px">Actions</th></tr></thead>
         <tbody>
           ${rows.map((p) => `
@@ -259,7 +263,7 @@ function renderRoster() {
             </tr>
           `).join('')}
         </tbody>
-      </table>
+      </table></div>
     </div>
   `;
 }
@@ -275,7 +279,7 @@ function renderSessions() {
       <button type="button" class="btn btn-primary" data-action="open-schedule-session">${ICONS.plus()} Schedule session</button>
     </div>
     <div class="card elev-sm table-card">
-      <table class="table">
+      <div class="table-scroll"><table class="table">
         <thead><tr><th>Date</th><th>Time</th><th>Type</th><th>Location</th><th>Status</th><th>Activities</th></tr></thead>
         <tbody>
           ${rows.map((s) => `
@@ -289,7 +293,7 @@ function renderSessions() {
             </tr>
           `).join('')}
         </tbody>
-      </table>
+      </table></div>
     </div>
   `;
 }
@@ -351,7 +355,7 @@ function renderAttendance() {
       <button type="button" class="btn btn-secondary" data-action="mark-all-present">Mark all present</button>
     </div>
     <div class="card elev-sm table-card">
-      <table class="table">
+      <div class="table-scroll"><table class="table">
         <thead><tr><th>Player</th><th>Position</th><th style="width:300px">Status</th></tr></thead>
         <tbody>
           ${rows.map((r) => {
@@ -371,7 +375,7 @@ function renderAttendance() {
             `;
           }).join('')}
         </tbody>
-      </table>
+      </table></div>
       <div class="table-footer">
         <span class="table-footer-label">${presentCount} present · ${lateCount} late · ${absentCount} absent</span>
         <button type="button" class="btn btn-primary" data-action="save-attendance">Save attendance</button>
@@ -386,7 +390,7 @@ function renderEvaluations() {
       <button type="button" class="btn btn-primary" data-action="open-new-evaluation">${ICONS.plus()} New evaluation</button>
     </div>
     <div class="card elev-sm table-card">
-      <table class="table">
+      <div class="table-scroll"><table class="table">
         <thead><tr><th>Player</th><th>Date</th><th>Skill</th><th>Effort</th><th>Teamwork</th><th>Attitude</th><th>Comment</th></tr></thead>
         <tbody>
           ${state.evaluations.map((e) => `
@@ -401,7 +405,7 @@ function renderEvaluations() {
             </tr>
           `).join('')}
         </tbody>
-      </table>
+      </table></div>
     </div>
   `;
 }
@@ -413,7 +417,7 @@ function renderReports() {
       <button type="button" class="btn btn-primary" data-action="open-generate-report">${ICONS.plus()} Generate report</button>
     </div>
     <div class="card elev-sm table-card">
-      <table class="table">
+      <div class="table-scroll"><table class="table">
         <thead><tr><th>Report</th><th>Range</th><th>Generated</th><th>Status</th><th style="width:150px">Export</th></tr></thead>
         <tbody>
           ${rows.map((r) => `
@@ -431,7 +435,7 @@ function renderReports() {
             </tr>
           `).join('')}
         </tbody>
-      </table>
+      </table></div>
     </div>
   `;
 }
@@ -513,8 +517,8 @@ function renderModals() {
         <div class="dialog" data-action="stop-prop">
           <div class="dialog-title">Schedule training session</div>
           <div class="dialog-field-stack">
-            <div class="field"><label>Date</label><input id="scheduleDateInput" type="text" class="input" placeholder="e.g. Jul 20, 2026" value="${esc(f.date)}" data-action="schedule-date" /></div>
-            <div class="field"><label>Time</label><input id="scheduleTimeInput" type="text" class="input" placeholder="e.g. 4:00 PM" value="${esc(f.time)}" data-action="schedule-time" /></div>
+            <div class="field"><label for="scheduleDateInput">Date</label><input id="scheduleDateInput" type="text" class="input" placeholder="e.g. Jul 20, 2026" value="${esc(f.date)}" data-action="schedule-date" /></div>
+            <div class="field"><label for="scheduleTimeInput">Time</label><input id="scheduleTimeInput" type="text" class="input" placeholder="e.g. 4:00 PM" value="${esc(f.time)}" data-action="schedule-time" /></div>
             <div class="field"><label>Type</label>
               <div class="seg">
                 <label class="seg-opt"><input type="radio" name="schedule-type" data-action="schedule-type" data-value="Practice" ${f.type === 'Practice' ? 'checked' : ''} />Practice</label>
@@ -522,7 +526,8 @@ function renderModals() {
                 <label class="seg-opt"><input type="radio" name="schedule-type" data-action="schedule-type" data-value="Game" ${f.type === 'Game' ? 'checked' : ''} />Game</label>
               </div>
             </div>
-            <div class="field"><label>Location</label><input id="scheduleLocationInput" type="text" class="input" value="${esc(f.location)}" data-action="schedule-location" /></div>
+            <div class="field"><label for="scheduleLocationInput">Location</label><input id="scheduleLocationInput" type="text" class="input" value="${esc(f.location)}" data-action="schedule-location" /></div>
+            ${state.scheduleError ? `<div class="login-error" role="alert">${esc(state.scheduleError)}</div>` : ''}
           </div>
           <div class="dialog-actions">
             <button type="button" class="btn btn-secondary" data-action="close-schedule-session">Cancel</button>
@@ -573,25 +578,26 @@ function renderModals() {
         <div class="dialog" data-action="stop-prop">
           <div class="dialog-title">Add activity</div>
           <div class="dialog-field-stack">
-            <div class="field"><label>Name</label><input id="addActivityNameInput" type="text" class="input" value="${esc(f.name)}" data-action="add-activity-name" /></div>
-            <div class="field"><label>Category</label>
-              <select class="input" data-action="add-activity-category">
+            <div class="field"><label for="addActivityNameInput">Name</label><input id="addActivityNameInput" type="text" class="input" value="${esc(f.name)}" data-action="add-activity-name" /></div>
+            <div class="field"><label for="addActivityCategorySelect">Category</label>
+              <select id="addActivityCategorySelect" class="input" data-action="add-activity-category">
                 ${categories.map((c) => `<option value="${esc(c)}" ${f.category === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}
                 <option value="__custom__" ${isCustom ? 'selected' : ''}>Write my own…</option>
               </select>
             </div>
             ${isCustom ? `
-              <div class="field"><label>New category name</label><input id="addActivityCustomCategoryInput" type="text" class="input" placeholder="e.g. Footwork" value="${esc(f.customCategory)}" data-action="add-activity-custom-category" /></div>
+              <div class="field"><label for="addActivityCustomCategoryInput">New category name</label><input id="addActivityCustomCategoryInput" type="text" class="input" placeholder="e.g. Footwork" value="${esc(f.customCategory)}" data-action="add-activity-custom-category" /></div>
             ` : ''}
-            <div class="field"><label>Duration</label><input id="addActivityDurationInput" type="text" class="input" placeholder="e.g. 15 min" value="${esc(f.duration)}" data-action="add-activity-duration" /></div>
-            <div class="field"><label>Difficulty</label>
-              <select class="input" data-action="add-activity-difficulty">
+            <div class="field"><label for="addActivityDurationInput">Duration</label><input id="addActivityDurationInput" type="text" class="input" placeholder="e.g. 15 min" value="${esc(f.duration)}" data-action="add-activity-duration" /></div>
+            <div class="field"><label for="addActivityDifficultySelect">Difficulty</label>
+              <select id="addActivityDifficultySelect" class="input" data-action="add-activity-difficulty">
                 <option value="Beginner" ${f.difficulty === 'Beginner' ? 'selected' : ''}>Beginner</option>
                 <option value="Intermediate" ${f.difficulty === 'Intermediate' ? 'selected' : ''}>Intermediate</option>
                 <option value="Advanced" ${f.difficulty === 'Advanced' ? 'selected' : ''}>Advanced</option>
               </select>
             </div>
-            <div class="field"><label>Description</label><textarea id="addActivityDescriptionInput" class="input" rows="3" data-action="add-activity-description">${esc(f.description)}</textarea></div>
+            <div class="field"><label for="addActivityDescriptionInput">Description</label><textarea id="addActivityDescriptionInput" class="input" rows="3" data-action="add-activity-description">${esc(f.description)}</textarea></div>
+            ${state.addActivityError ? `<div class="login-error" role="alert">${esc(state.addActivityError)}</div>` : ''}
           </div>
           <div class="dialog-actions">
             <button type="button" class="btn btn-secondary" data-action="close-add-activity">Cancel</button>
@@ -692,7 +698,7 @@ const actions = {
   'go-page': (el) => { state.page = el.dataset.page; state.profileOpen = false; state.notifOpen = false; },
   'toggle-notif': (el, e) => { e.stopPropagation(); state.notifOpen = !state.notifOpen; state.profileOpen = false; },
   'toggle-profile': (el, e) => { e.stopPropagation(); state.profileOpen = !state.profileOpen; state.notifOpen = false; },
-  'logout': () => showToast('Logged out (demo)'),
+  'logout': () => { showToast('Logged out (demo)'); setTimeout(() => { window.location.href = 'index.html'; }, 700); },
   'stop-prop': (el, e) => e.stopPropagation(),
 
   // roster
@@ -702,35 +708,35 @@ const actions = {
   },
 
   // sessions
-  'open-schedule-session': () => { state.scheduleForm = { date: '', time: '', type: 'Practice', location: 'Main Gym' }; state.scheduleSessionOpen = true; },
+  'open-schedule-session': () => { state.scheduleForm = { date: '', time: '', type: 'Practice', location: 'Main Gym' }; state.scheduleError = ''; state.scheduleSessionOpen = true; },
   'close-schedule-session': () => { state.scheduleSessionOpen = false; },
-  'schedule-date': (el) => { state.scheduleForm.date = el.value; },
+  'schedule-date': (el) => { state.scheduleForm.date = el.value; state.scheduleError = ''; },
   'schedule-time': (el) => { state.scheduleForm.time = el.value; },
   'schedule-location': (el) => { state.scheduleForm.location = el.value; },
   'schedule-type': (el) => { state.scheduleForm.type = el.dataset.value; },
   'submit-schedule-session': () => {
-    if (!state.scheduleForm.date.trim()) return;
-    state.sessions = [{ id: 's' + Date.now(), ...state.scheduleForm, status: 'Scheduled' }, ...state.sessions];
+    if (!state.scheduleForm.date.trim()) { state.scheduleError = 'Enter a date to continue.'; return; }
+    state.sessions = [{ id: uid('s'), ...state.scheduleForm, status: 'Scheduled' }, ...state.sessions];
     state.scheduleSessionOpen = false;
     showToast('Session scheduled');
   },
 
   // activities
   'activities-category-filter': (el) => { state.activitiesCategoryFilter = el.value; },
-  'open-add-activity': () => { state.addActivityForm = { name: '', category: 'Ball Handling', customCategory: '', duration: '', difficulty: 'Beginner', description: '' }; state.addActivityOpen = true; },
+  'open-add-activity': () => { state.addActivityForm = { name: '', category: 'Ball Handling', customCategory: '', duration: '', difficulty: 'Beginner', description: '' }; state.addActivityError = ''; state.addActivityOpen = true; },
   'close-add-activity': () => { state.addActivityOpen = false; },
-  'add-activity-name': (el) => { state.addActivityForm.name = el.value; },
+  'add-activity-name': (el) => { state.addActivityForm.name = el.value; state.addActivityError = ''; },
   'add-activity-category': (el) => { state.addActivityForm.category = el.value; },
-  'add-activity-custom-category': (el) => { state.addActivityForm.customCategory = el.value; },
+  'add-activity-custom-category': (el) => { state.addActivityForm.customCategory = el.value; state.addActivityError = ''; },
   'add-activity-duration': (el) => { state.addActivityForm.duration = el.value; },
   'add-activity-difficulty': (el) => { state.addActivityForm.difficulty = el.value; },
   'add-activity-description': (el) => { state.addActivityForm.description = el.value; },
   'submit-add-activity': () => {
     const f = state.addActivityForm;
-    if (!f.name.trim()) return;
+    if (!f.name.trim()) { state.addActivityError = 'Enter a name to continue.'; return; }
     const isCustom = f.category === '__custom__';
     const category = isCustom ? (f.customCategory.trim() || 'Uncategorized') : f.category;
-    state.activities = [{ id: 'a' + Date.now(), name: f.name, category, duration: f.duration, difficulty: f.difficulty, description: f.description, assignedSessionIds: [] }, ...state.activities];
+    state.activities = [{ id: uid('a'), name: f.name, category, duration: f.duration, difficulty: f.difficulty, description: f.description, assignedSessionIds: [] }, ...state.activities];
     if (isCustom && !ACTIVITY_CATEGORIES.includes(category) && !state.customCategories.includes(category)) {
       state.customCategories = [...state.customCategories, category];
     }
@@ -783,7 +789,7 @@ const actions = {
   'eval-comment': (el) => { state.evalModal.comment = el.value; },
   'submit-evaluation': () => {
     const m = state.evalModal;
-    state.evaluations = [{ id: 'e' + Date.now(), playerId: m.playerId, playerName: m.playerName, date: 'Jul 14, 2026', scores: m.scores, comment: m.comment }, ...state.evaluations];
+    state.evaluations = [{ id: uid('e'), playerId: m.playerId, playerName: m.playerName, date: 'Jul 14, 2026', scores: m.scores, comment: m.comment }, ...state.evaluations];
     state.roster = state.roster.map((p) => p.id === m.playerId ? { ...p, lastEval: 'Jul 14, 2026' } : p);
     state.evalModal = null;
     showToast(`Evaluation saved for ${m.playerName}`);
@@ -795,7 +801,7 @@ const actions = {
   'gen-report-name': (el) => { state.genReportForm.name = el.value; },
   'submit-generate-report': () => {
     const name = state.genReportForm.name.trim() || 'Untitled report';
-    state.reports = [{ id: 'r' + Date.now(), name, range: 'Custom', generatedOn: 'Jul 14, 2026', status: 'Ready' }, ...state.reports];
+    state.reports = [{ id: uid('r'), name, range: 'Custom', generatedOn: 'Jul 14, 2026', status: 'Ready' }, ...state.reports];
     state.genReportOpen = false;
     showToast(`"${name}" generated`);
   },
@@ -818,7 +824,7 @@ const actions = {
 
 document.addEventListener('click', (e) => {
   let changed = false;
-  if (e.target.closest('.content') && (state.profileOpen || state.notifOpen)) {
+  if (!e.target.closest('.menu-anchor') && (state.profileOpen || state.notifOpen)) {
     state.profileOpen = false;
     state.notifOpen = false;
     changed = true;
@@ -829,6 +835,14 @@ document.addEventListener('click', (e) => {
     if (handler) { handler(el, e); changed = true; }
   }
   if (changed) render();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && (state.profileOpen || state.notifOpen)) {
+    state.profileOpen = false;
+    state.notifOpen = false;
+    render();
+  }
 });
 
 document.addEventListener('input', (e) => {

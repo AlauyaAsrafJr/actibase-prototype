@@ -32,7 +32,7 @@ const state = {
   reportsSportFilter: 'all', reportsDateFilter: 'all',
   archiveTypeFilter: 'all',
 
-  addUserOpen: false, addUserForm: { name: '', email: '', role: 'Coach' },
+  addUserOpen: false, addUserForm: { name: '', email: '', role: 'Coach' }, addUserError: '',
   genReportOpen: false, genReportForm: { name: '', format: 'PDF' },
 
   viewDialog: null,
@@ -45,6 +45,10 @@ let toastTimer = null;
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function uid(prefix) {
+  return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
 function sortList(list, key, dir) {
@@ -140,12 +144,12 @@ function renderTopbar() {
         <div class="topbar-subtitle">${esc(subtitle)}</div>
       </div>
       <div class="menu-anchor">
-        <button type="button" class="icon-btn" data-action="toggle-notif" aria-label="Notifications">
+        <button type="button" class="icon-btn" data-action="toggle-notif" aria-label="Notifications" aria-haspopup="true" aria-expanded="${state.notifOpen}" aria-controls="notifMenu">
           ${ICONS.bell()}
           <span class="badge-dot"></span>
         </button>
         ${state.notifOpen ? `
-          <div class="menu-panel notif-panel">
+          <div class="menu-panel notif-panel" id="notifMenu" role="menu">
             <div class="menu-panel-title">Notifications</div>
             <div class="menu-panel-item">3 attendance sessions pending review for Track &amp; Field.</div>
             <div class="menu-panel-item">Monthly engagement report finished generating.</div>
@@ -154,7 +158,7 @@ function renderTopbar() {
         ` : ''}
       </div>
       <div class="menu-anchor">
-        <button type="button" class="profile-btn" data-action="toggle-profile">
+        <button type="button" class="profile-btn" data-action="toggle-profile" aria-haspopup="true" aria-expanded="${state.profileOpen}" aria-controls="profileMenu">
           <div class="avatar">DW</div>
           <div class="profile-name-block">
             <div class="profile-name">Dana Whitfield</div>
@@ -163,9 +167,9 @@ function renderTopbar() {
           ${ICONS.chevronDown()}
         </button>
         ${state.profileOpen ? `
-          <div class="menu-panel profile-panel">
-            <button type="button" class="menu-btn" data-action="account-settings">Account settings</button>
-            <button type="button" class="menu-btn danger" data-action="logout">Log out</button>
+          <div class="menu-panel profile-panel" id="profileMenu" role="menu">
+            <button type="button" class="menu-btn" data-action="account-settings" role="menuitem">Account settings</button>
+            <button type="button" class="menu-btn danger" data-action="logout" role="menuitem">Log out</button>
           </div>
         ` : ''}
       </div>
@@ -279,7 +283,7 @@ function renderUsers() {
     </div>
 
     <div class="card elev-sm table-card">
-      <table class="table">
+      <div class="table-scroll"><table class="table">
         <thead>
           <tr>
             <th style="width:36px"><input type="checkbox" data-action="users-toggle-all" ${allSelected ? 'checked' : ''} /></th>
@@ -310,7 +314,7 @@ function renderUsers() {
             </tr>
           `).join('')}
         </tbody>
-      </table>
+      </table></div>
       <div class="table-footer">
         <span class="table-footer-label">Page ${page} of ${totalPages} · ${list.length} users</span>
         <div class="table-footer-actions">
@@ -341,7 +345,7 @@ function renderPlayers() {
     </div>
 
     <div class="card elev-sm table-card">
-      <table class="table">
+      <div class="table-scroll"><table class="table">
         <thead>
           <tr>
             <th style="width:36px"><input type="checkbox" data-action="players-toggle-all" ${allSelected ? 'checked' : ''} /></th>
@@ -378,7 +382,7 @@ function renderPlayers() {
             `;
           }).join('')}
         </tbody>
-      </table>
+      </table></div>
       <div class="table-footer">
         <span class="table-footer-label">Page ${page} of ${totalPages} · ${list.length} players</span>
         <div class="table-footer-actions">
@@ -407,7 +411,7 @@ function renderAttendance() {
       </div>
     </div>
     <div class="card elev-sm table-card">
-      <table class="table">
+      <div class="table-scroll"><table class="table">
         <thead><tr><th>Date</th><th>Sport / Team</th><th>Session</th><th>Present</th><th>Absent</th><th>Rate</th></tr></thead>
         <tbody>
           ${filteredSessions.map((s) => `
@@ -421,7 +425,7 @@ function renderAttendance() {
             </tr>
           `).join('')}
         </tbody>
-      </table>
+      </table></div>
     </div>
   `;
 }
@@ -447,7 +451,7 @@ function renderReports() {
       <button type="button" class="btn btn-primary" data-action="open-generate-report">${ICONS.plus()} Generate report</button>
     </div>
     <div class="card elev-sm table-card">
-      <table class="table">
+      <div class="table-scroll"><table class="table">
         <thead><tr><th>Report</th><th>Sport</th><th>Range</th><th>Generated</th><th>Status</th><th style="width:150px">Export</th></tr></thead>
         <tbody>
           ${filteredReports.map((r) => `
@@ -466,7 +470,7 @@ function renderReports() {
             </tr>
           `).join('')}
         </tbody>
-      </table>
+      </table></div>
     </div>
   `;
 }
@@ -484,7 +488,7 @@ function renderArchive() {
       </div>
     </div>
     <div class="card elev-sm table-card">
-      <table class="table">
+      <div class="table-scroll"><table class="table">
         <thead><tr><th>Record</th><th>Type</th><th>Archived on</th><th>Archived by</th><th style="width:150px">Actions</th></tr></thead>
         <tbody>
           ${filteredArchive.map((a) => `
@@ -502,7 +506,7 @@ function renderArchive() {
             </tr>
           `).join('')}
         </tbody>
-      </table>
+      </table></div>
     </div>
   `;
 }
@@ -541,15 +545,16 @@ function renderModals() {
         <div class="dialog" data-action="stop-prop">
           <div class="dialog-title">Add new user</div>
           <div class="dialog-field-stack">
-            <div class="field"><label>Full name</label><input id="addUserNameInput" type="text" class="input" value="${esc(state.addUserForm.name)}" data-action="add-user-name" /></div>
-            <div class="field"><label>Email</label><input id="addUserEmailInput" type="text" class="input" value="${esc(state.addUserForm.email)}" data-action="add-user-email" /></div>
-            <div class="field"><label>Role</label>
-              <select class="input" data-action="add-user-role">
+            <div class="field"><label for="addUserNameInput">Full name</label><input id="addUserNameInput" type="text" class="input" value="${esc(state.addUserForm.name)}" data-action="add-user-name" /></div>
+            <div class="field"><label for="addUserEmailInput">Email</label><input id="addUserEmailInput" type="text" class="input" value="${esc(state.addUserForm.email)}" data-action="add-user-email" /></div>
+            <div class="field"><label for="addUserRoleSelect">Role</label>
+              <select id="addUserRoleSelect" class="input" data-action="add-user-role">
                 <option value="Admin" ${state.addUserForm.role === 'Admin' ? 'selected' : ''}>Admin</option>
                 <option value="Coach" ${state.addUserForm.role === 'Coach' ? 'selected' : ''}>Coach</option>
                 <option value="Staff" ${state.addUserForm.role === 'Staff' ? 'selected' : ''}>Staff</option>
               </select>
             </div>
+            ${state.addUserError ? `<div class="login-error" role="alert">${esc(state.addUserError)}</div>` : ''}
           </div>
           <div class="dialog-actions">
             <button type="button" class="btn btn-secondary" data-action="close-add-user">Cancel</button>
@@ -675,7 +680,7 @@ const actions = {
   'account-settings': () => { state.page = 'settings'; state.profileOpen = false; state.notifOpen = false; },
   'toggle-notif': (el, e) => { e.stopPropagation(); state.notifOpen = !state.notifOpen; state.profileOpen = false; },
   'toggle-profile': (el, e) => { e.stopPropagation(); state.profileOpen = !state.profileOpen; state.notifOpen = false; },
-  'logout': () => showToast('Logged out (demo)'),
+  'logout': () => { showToast('Logged out (demo)'); setTimeout(() => { window.location.href = 'index.html'; }, 700); },
   'stop-prop': (el, e) => e.stopPropagation(),
 
   // users
@@ -706,7 +711,7 @@ const actions = {
       confirmLabel: 'Archive',
       run: () => {
         state.users = state.users.filter((x) => x.id !== u.id);
-        state.archived = [{ id: 'arc' + Date.now(), name: u.name, type: 'User', archivedOn: 'Jul 14, 2026', archivedBy: 'Dana Whitfield' }, ...state.archived];
+        state.archived = [{ id: uid('arc'), name: u.name, type: 'User', archivedOn: 'Jul 14, 2026', archivedBy: 'Dana Whitfield' }, ...state.archived];
         showToast(`${u.name} archived`);
       },
     };
@@ -723,21 +728,21 @@ const actions = {
   'users-archive-selected': () => {
     const names = state.users.filter((u) => state.usersSelected.includes(u.id)).map((u) => u.name);
     state.users = state.users.filter((u) => !state.usersSelected.includes(u.id));
-    state.archived = [...names.map((n) => ({ id: 'arc' + Date.now() + n, name: n, type: 'User', archivedOn: 'Jul 14, 2026', archivedBy: 'Dana Whitfield' })), ...state.archived];
+    state.archived = [...names.map((n) => ({ id: uid('arc') + n, name: n, type: 'User', archivedOn: 'Jul 14, 2026', archivedBy: 'Dana Whitfield' })), ...state.archived];
     state.usersSelected = [];
     showToast(`${names.length} user(s) archived`);
   },
   'users-prev-page': () => { const { page } = usersPageSlice(); state.usersPage = Math.max(1, page - 1); },
   'users-next-page': () => { const { page, totalPages } = usersPageSlice(); state.usersPage = Math.min(totalPages, page + 1); },
 
-  'open-add-user': () => { state.addUserForm = { name: '', email: '', role: 'Coach' }; state.addUserOpen = true; },
+  'open-add-user': () => { state.addUserForm = { name: '', email: '', role: 'Coach' }; state.addUserError = ''; state.addUserOpen = true; },
   'close-add-user': () => { state.addUserOpen = false; },
-  'add-user-name': (el) => { state.addUserForm.name = el.value; },
-  'add-user-email': (el) => { state.addUserForm.email = el.value; },
+  'add-user-name': (el) => { state.addUserForm.name = el.value; state.addUserError = ''; },
+  'add-user-email': (el) => { state.addUserForm.email = el.value; state.addUserError = ''; },
   'add-user-role': (el) => { state.addUserForm.role = el.value; },
   'submit-add-user': () => {
-    if (!state.addUserForm.name.trim()) return;
-    const nu = { id: 'u' + Date.now(), name: state.addUserForm.name, email: state.addUserForm.email || '—', role: state.addUserForm.role, status: 'Active', lastActive: 'Just now' };
+    if (!state.addUserForm.name.trim()) { state.addUserError = 'Enter a full name to continue.'; return; }
+    const nu = { id: uid('u'), name: state.addUserForm.name, email: state.addUserForm.email || '—', role: state.addUserForm.role, status: 'Active', lastActive: 'Just now' };
     state.users = [nu, ...state.users];
     state.addUserOpen = false;
     showToast(`${nu.name} added`);
@@ -770,7 +775,7 @@ const actions = {
       confirmLabel: 'Archive',
       run: () => {
         state.players = state.players.filter((x) => x.id !== p.id);
-        state.archived = [{ id: 'arc' + Date.now(), name: p.name, type: 'Player', archivedOn: 'Jul 14, 2026', archivedBy: 'Dana Whitfield' }, ...state.archived];
+        state.archived = [{ id: uid('arc'), name: p.name, type: 'Player', archivedOn: 'Jul 14, 2026', archivedBy: 'Dana Whitfield' }, ...state.archived];
         showToast(`${p.name} archived`);
       },
     };
@@ -787,7 +792,7 @@ const actions = {
   'players-archive-selected': () => {
     const names = state.players.filter((p) => state.playersSelected.includes(p.id)).map((p) => p.name);
     state.players = state.players.filter((p) => !state.playersSelected.includes(p.id));
-    state.archived = [...names.map((n) => ({ id: 'arc' + Date.now() + n, name: n, type: 'Player', archivedOn: 'Jul 14, 2026', archivedBy: 'Dana Whitfield' })), ...state.archived];
+    state.archived = [...names.map((n) => ({ id: uid('arc') + n, name: n, type: 'Player', archivedOn: 'Jul 14, 2026', archivedBy: 'Dana Whitfield' })), ...state.archived];
     state.playersSelected = [];
     showToast(`${names.length} player(s) archived`);
   },
@@ -809,7 +814,7 @@ const actions = {
   'gen-report-format-csv': () => { state.genReportForm.format = 'CSV'; },
   'submit-generate-report': () => {
     const name = state.genReportForm.name.trim() || 'Untitled report';
-    state.reports = [{ id: 'rp' + Date.now(), name, sport: 'All sports', range: 'Custom', generatedOn: 'Jul 14, 2026', status: 'Ready' }, ...state.reports];
+    state.reports = [{ id: uid('rp'), name, sport: 'All sports', range: 'Custom', generatedOn: 'Jul 14, 2026', status: 'Ready' }, ...state.reports];
     state.genReportOpen = false;
     showToast(`"${name}" generated (${state.genReportForm.format})`);
   },
@@ -842,7 +847,7 @@ const actions = {
 
 document.addEventListener('click', (e) => {
   let changed = false;
-  if (e.target.closest('.content') && (state.profileOpen || state.notifOpen)) {
+  if (!e.target.closest('.menu-anchor') && (state.profileOpen || state.notifOpen)) {
     state.profileOpen = false;
     state.notifOpen = false;
     changed = true;
@@ -853,6 +858,14 @@ document.addEventListener('click', (e) => {
     if (handler) { handler(el, e); changed = true; }
   }
   if (changed) render();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && (state.profileOpen || state.notifOpen)) {
+    state.profileOpen = false;
+    state.notifOpen = false;
+    render();
+  }
 });
 
 document.addEventListener('input', (e) => {

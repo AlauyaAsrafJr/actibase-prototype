@@ -2,10 +2,17 @@
 // state/render/data-action architecture as the other modules, just a
 // much smaller page: no sidebar, no topbar, one form.
 
-const state = { email: '', password: '', remember: false, error: '' };
+const state = { email: '', password: '', remember: false, error: '', toast: null };
+let toastTimer = null;
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function showToast(msg) {
+  clearTimeout(toastTimer);
+  state.toast = msg;
+  toastTimer = setTimeout(() => { state.toast = null; render(); }, 2500);
 }
 
 function renderApp() {
@@ -31,15 +38,15 @@ function renderApp() {
 
           <div class="dialog-field-stack" style="gap:16px">
             <div class="field">
-              <label>Email</label>
+              <label for="loginEmailInput">Email</label>
               <input id="loginEmailInput" class="input" type="email" placeholder="you@actibase.edu" value="${esc(state.email)}" data-action="email-input" />
             </div>
             <div class="field">
-              <label>Password</label>
+              <label for="loginPasswordInput">Password</label>
               <input id="loginPasswordInput" class="input" type="password" placeholder="••••••••" value="${esc(state.password)}" data-action="password-input" />
             </div>
 
-            ${state.error ? `<div class="login-error">${esc(state.error)}</div>` : ''}
+            ${state.error ? `<div class="login-error" role="alert">${esc(state.error)}</div>` : ''}
 
             <div class="login-row">
               <label class="login-remember">
@@ -56,10 +63,12 @@ function renderApp() {
           </div>
 
           <div class="hr"></div>
-          <p class="login-footer-text">Not an administrator? <a href="#">Go to Coach or Player login</a></p>
+          <p class="login-footer-text">New to Actibase? <a href="register.html">Create an account</a></p>
+          <p class="login-footer-text" style="margin-top:8px">Not an administrator? <a href="#" data-action="coach-or-player-login">Go to Coach or Player login</a></p>
         </div>
       </div>
     </div>
+    ${state.toast ? `<div class="toast">${esc(state.toast)}</div>` : ''}
   `;
 }
 
@@ -97,6 +106,10 @@ const actions = {
   'password-input': (el) => { state.password = el.value; state.error = ''; },
   'remember-toggle': (el) => { state.remember = el.checked; },
   'forgot-password': (el, e) => { e.preventDefault(); state.error = 'Password reset link sent (demo).'; },
+  'coach-or-player-login': (el, e) => {
+    e.preventDefault();
+    showToast('Coach and Player accounts sign in directly — try Create account.');
+  },
   'submit': () => {
     if (!state.email.trim() || !state.password.trim()) {
       state.error = 'Enter both email and password to continue.';

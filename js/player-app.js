@@ -89,12 +89,12 @@ function renderTopbar() {
         <div class="topbar-subtitle">${esc(subtitle)}</div>
       </div>
       <div class="menu-anchor">
-        <button type="button" class="icon-btn" data-action="toggle-notif" aria-label="Notifications">
+        <button type="button" class="icon-btn" data-action="toggle-notif" aria-label="Notifications" aria-haspopup="true" aria-expanded="${state.notifOpen}" aria-controls="notifMenu">
           ${ICONS.bell()}
           <span class="badge-dot"></span>
         </button>
         ${state.notifOpen ? `
-          <div class="menu-panel notif-panel">
+          <div class="menu-panel notif-panel" id="notifMenu" role="menu">
             <div class="menu-panel-title">Notifications</div>
             <div class="menu-panel-item">Practice scheduled today at 4:00 PM — Main Gym.</div>
             <div class="menu-panel-item">Coach Bailey posted a new evaluation for you.</div>
@@ -103,7 +103,7 @@ function renderTopbar() {
         ` : ''}
       </div>
       <div class="menu-anchor">
-        <button type="button" class="profile-btn" data-action="toggle-profile">
+        <button type="button" class="profile-btn" data-action="toggle-profile" aria-haspopup="true" aria-expanded="${state.profileOpen}" aria-controls="profileMenu">
           <div class="avatar">${esc(initials)}</div>
           <div class="profile-name-block">
             <div class="profile-name">${esc(state.profile.name)}</div>
@@ -112,10 +112,10 @@ function renderTopbar() {
           ${ICONS.chevronDown()}
         </button>
         ${state.profileOpen ? `
-          <div class="menu-panel profile-panel">
-            <button type="button" class="menu-btn" data-action="go-page" data-page="profile">My profile</button>
-            <button type="button" class="menu-btn" data-action="go-page" data-page="settings">Account settings</button>
-            <button type="button" class="menu-btn danger" data-action="logout">Log out</button>
+          <div class="menu-panel profile-panel" id="profileMenu" role="menu">
+            <button type="button" class="menu-btn" data-action="go-page" data-page="profile" role="menuitem">My profile</button>
+            <button type="button" class="menu-btn" data-action="go-page" data-page="settings" role="menuitem">Account settings</button>
+            <button type="button" class="menu-btn danger" data-action="logout" role="menuitem">Log out</button>
           </div>
         ` : ''}
       </div>
@@ -271,7 +271,7 @@ function renderAttendance() {
       </div>
     </div>
     <div class="card elev-sm table-card">
-      <table class="table">
+      <div class="table-scroll"><table class="table">
         <thead><tr><th>Date</th><th>Type</th><th>Location</th><th>Status</th></tr></thead>
         <tbody>
           ${filtered.map((a) => `
@@ -283,7 +283,7 @@ function renderAttendance() {
             </tr>
           `).join('')}
         </tbody>
-      </table>
+      </table></div>
     </div>
   `;
 }
@@ -373,7 +373,7 @@ function renderStats() {
       `).join('')}
     </div>
     <div class="card elev-sm table-card">
-      <table class="table">
+      <div class="table-scroll"><table class="table">
         <thead><tr><th>Teammate</th><th>Attendance</th></tr></thead>
         <tbody>
           ${teamStandings.map((t) => `
@@ -383,7 +383,7 @@ function renderStats() {
             </tr>
           `).join('')}
         </tbody>
-      </table>
+      </table></div>
     </div>
   `;
 }
@@ -462,7 +462,7 @@ const actions = {
   'go-page': (el) => { state.page = el.dataset.page; state.profileOpen = false; state.notifOpen = false; },
   'toggle-notif': (el, e) => { e.stopPropagation(); state.notifOpen = !state.notifOpen; state.profileOpen = false; },
   'toggle-profile': (el, e) => { e.stopPropagation(); state.profileOpen = !state.profileOpen; state.notifOpen = false; },
-  'logout': () => showToast('Logged out (demo)'),
+  'logout': () => { showToast('Logged out (demo)'); setTimeout(() => { window.location.href = 'index.html'; }, 700); },
   'stop-prop': (el, e) => e.stopPropagation(),
 
   'date-all': () => { state.dateFilter = 'all'; },
@@ -482,7 +482,7 @@ const actions = {
 
 document.addEventListener('click', (e) => {
   let changed = false;
-  if (e.target.closest('.content') && (state.profileOpen || state.notifOpen)) {
+  if (!e.target.closest('.menu-anchor') && (state.profileOpen || state.notifOpen)) {
     state.profileOpen = false;
     state.notifOpen = false;
     changed = true;
@@ -493,6 +493,14 @@ document.addEventListener('click', (e) => {
     if (handler) { handler(el, e); changed = true; }
   }
   if (changed) render();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && (state.profileOpen || state.notifOpen)) {
+    state.profileOpen = false;
+    state.notifOpen = false;
+    render();
+  }
 });
 
 document.addEventListener('input', (e) => {

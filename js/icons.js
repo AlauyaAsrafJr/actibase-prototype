@@ -41,4 +41,10 @@ const ICONS = {
   profile: (size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`,
 
   drills: (size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 17.5 17.5"></path><path d="m21 21-1.5-1.5"></path><path d="M3 3l1.5 1.5"></path><path d="M18.5 2.5 21 5l-3 3-2.5-2.5Z"></path><path d="M2.5 18.5 5 21l3-3-2.5-2.5Z"></path><path d="m9 5 5 5"></path><path d="m5 9 5 5"></path></svg>`,
+
+  trainingActivities: (size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 17.5 17.5"></path><path d="m21 21-1.5-1.5"></path><path d="M3 3l1.5 1.5"></path><path d="M18.5 2.5 21 5l-3 3-2.5-2.5Z"></path><path d="M2.5 18.5 5 21l3-3-2.5-2.5Z"></path></svg>`,
+
+  rank: (size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"></path><path d="M12 17v4"></path><path d="M7 4h10v5a5 5 0 0 1-10 0Z"></path><path d="M5 9a4 4 0 0 1-3-4V4h3"></path><path d="M19 9a4 4 0 0 0 3-4V4h-3"></path></svg>`,
+
+  clock: (size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>`,
 };

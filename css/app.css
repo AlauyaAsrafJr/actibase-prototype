@@ -185,3 +185,28 @@ a:hover { color: var(--color-accent-700); }
 }
 .eval-category-label { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
 .eval-score-row { display: flex; gap: 6px; }
+
+/* — login — */
+.login-shell {
+  display: flex; min-height: 100vh; background: var(--color-bg);
+  font-family: var(--font-body); color: var(--color-text);
+}
+.login-brand-panel {
+  flex: 1; background: var(--color-neutral-900); color: #fff;
+  display: flex; flex-direction: column; justify-content: space-between; padding: 48px; position: relative;
+}
+.login-brand-logo { display: flex; align-items: center; gap: 10px; }
+.login-brand-headline { font-family: var(--font-heading); font-weight: 800; font-size: 40px; line-height: 1.1; max-width: 480px; margin-bottom: 16px; }
+.login-brand-desc { font-size: 15px; opacity: 0.7; max-width: 420px; line-height: 1.6; margin: 0; }
+.login-brand-footer { font-size: 12px; opacity: 0.5; }
+.login-form-panel { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px; }
+.login-form-wrap { width: 100%; max-width: 380px; }
+.login-error { font-size: 13px; color: var(--color-accent-700); font-weight: 600; }
+.login-row { display: flex; align-items: center; justify-content: space-between; }
+.login-remember { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+.login-forgot { font-size: 13px; font-weight: 600; }
+.login-footer-text { font-size: 13px; opacity: 0.6; text-align: center; margin: 0; }
+
+@media (max-width: 760px) {
+  .login-brand-panel { display: none; }
+}

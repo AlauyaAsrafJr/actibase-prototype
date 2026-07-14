@@ -103,7 +103,7 @@ const actions = {
       return;
     }
     state.error = '';
-    window.location.href = 'index.html';
+    window.location.href = 'admin.html';
   },
 };
 

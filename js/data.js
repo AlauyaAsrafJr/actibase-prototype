@@ -1,5 +1,5 @@
 // Mock data generators for the Actibase Admin Module prototype.
-// Plain globals (no modules, no build step) so index.html can load
+// Plain globals (no modules, no build step) so admin.html can load
 // this with a single <script> tag before app.js.
 
 const SPORTS = [

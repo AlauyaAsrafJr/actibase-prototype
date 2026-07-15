@@ -1,11 +1,11 @@
+from flask import g
 from sqlalchemy import create_engine
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, scoped_session, sessionmaker
 
 from .config import DATABASE_URL
 
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
 
 class Base(DeclarativeBase):
@@ -13,8 +13,15 @@ class Base(DeclarativeBase):
 
 
 def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    if "db" not in g:
+        g.db = SessionLocal()
+    return g.db
+
+
+def _close_db(exception=None):
+    g.pop("db", None)
+    SessionLocal.remove()
+
+
+def init_app(app):
+    app.teardown_appcontext(_close_db)

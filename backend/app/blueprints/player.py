@@ -1,27 +1,28 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from flask import Blueprint, g
 
 from .. import models, schemas
+from ..auth import require_role
 from ..database import get_db
-from ..deps import require_role
+from ..http import dump, json_response, parse_body
 from ..utils import attendance_pct, eval_average
 
-router = APIRouter(prefix="/player", tags=["player"], dependencies=[Depends(require_role("player"))])
+player_bp = Blueprint("player", __name__, url_prefix="/player")
+player_bp.before_request(require_role("player"))
 
 STATUS_DISPLAY = {"present": "Present", "late": "Late", "absent": "Absent"}
 
 
-def _current_player(player: models.User = Depends(require_role("player"))) -> models.User:
-    return player
+def _current_player() -> models.User:
+    return g.current_user
 
 
-def _coach_sessions(db: Session, player: models.User) -> list[models.TrainingSession]:
+def _coach_sessions(db, player: models.User) -> list[models.TrainingSession]:
     if player.coach_id is None:
         return []
     return db.query(models.TrainingSession).filter(models.TrainingSession.coach_id == player.coach_id).order_by(models.TrainingSession.id.desc()).all()
 
 
-def _attendance_rows(db: Session, player: models.User) -> list[schemas.PlayerAttendanceOut]:
+def _attendance_rows(db, player: models.User) -> list[schemas.PlayerAttendanceOut]:
     sessions = _coach_sessions(db, player)
     marks = {
         r.session_id: r.status
@@ -37,7 +38,7 @@ def _attendance_rows(db: Session, player: models.User) -> list[schemas.PlayerAtt
     return rows
 
 
-def _teammates(db: Session, player: models.User) -> list[tuple[models.User, int]]:
+def _teammates(db, player: models.User) -> list[tuple[models.User, int]]:
     if player.coach_id is None:
         teammates = [player]
     else:
@@ -50,8 +51,10 @@ def _teammates(db: Session, player: models.User) -> list[tuple[models.User, int]
 # ---- dashboard ----
 
 
-@router.get("/dashboard", response_model=schemas.PlayerDashboardOut)
-def dashboard(db: Session = Depends(get_db), player: models.User = Depends(_current_player)):
+@player_bp.get("/dashboard")
+def dashboard():
+    db = get_db()
+    player = _current_player()
     attendance_rows = _attendance_rows(db, player)
     counted = [r for r in attendance_rows if r.status != "Upcoming"]
     attended = sum(1 for r in counted if r.status in ("Present", "Late"))
@@ -74,7 +77,7 @@ def dashboard(db: Session = Depends(get_db), player: models.User = Depends(_curr
     ranked = _teammates(db, player)
     rank = next((i + 1 for i, (t, _) in enumerate(ranked) if t.id == player.id), len(ranked))
 
-    return schemas.PlayerDashboardOut(
+    out = schemas.PlayerDashboardOut(
         attendance_rate=rate,
         sessions_attended=attended,
         upcoming_sessions=sum(1 for r in attendance_rows if r.status == "Upcoming"),
@@ -83,23 +86,28 @@ def dashboard(db: Session = Depends(get_db), player: models.User = Depends(_curr
         overall_rank=rank,
         team_size=len(ranked),
     )
+    return json_response(out)
 
 
 # ---- attendance ----
 
 
-@router.get("/attendance", response_model=list[schemas.PlayerAttendanceOut])
-def attendance(db: Session = Depends(get_db), player: models.User = Depends(_current_player)):
-    return _attendance_rows(db, player)
+@player_bp.get("/attendance")
+def attendance():
+    db = get_db()
+    rows = _attendance_rows(db, _current_player())
+    return json_response([r.model_dump() for r in rows])
 
 
 # ---- activities ----
 
 
-@router.get("/activities", response_model=list[schemas.PlayerActivityOut])
-def activities(db: Session = Depends(get_db), player: models.User = Depends(_current_player)):
+@player_bp.get("/activities")
+def activities():
+    db = get_db()
+    player = _current_player()
     if player.coach_id is None:
-        return []
+        return json_response([])
     rows = (
         db.query(models.Activity, models.TrainingSession)
         .join(models.ActivityAssignment, models.ActivityAssignment.activity_id == models.Activity.id)
@@ -108,20 +116,23 @@ def activities(db: Session = Depends(get_db), player: models.User = Depends(_cur
         .order_by(models.TrainingSession.id.desc())
         .all()
     )
-    return [
+    out = [
         schemas.PlayerActivityOut(
             id=a.id, name=a.name, category=a.category, duration=a.duration,
             difficulty=a.difficulty, description=a.description, date=s.date,
-        )
+        ).model_dump()
         for a, s in rows
     ]
+    return json_response(out)
 
 
 # ---- evaluations ----
 
 
-@router.get("/evaluations", response_model=list[schemas.PlayerEvaluationOut])
-def evaluations(db: Session = Depends(get_db), player: models.User = Depends(_current_player)):
+@player_bp.get("/evaluations")
+def evaluations():
+    db = get_db()
+    player = _current_player()
     evals = db.query(models.Evaluation).filter(models.Evaluation.player_id == player.id).order_by(models.Evaluation.id.desc()).all()
     out = []
     for e in evals:
@@ -130,16 +141,18 @@ def evaluations(db: Session = Depends(get_db), player: models.User = Depends(_cu
             schemas.PlayerEvaluationOut(
                 id=e.id, date=e.date, coach_name=coach.name if coach else "Unknown",
                 skill=e.skill, effort=e.effort, teamwork=e.teamwork, attitude=e.attitude, comment=e.comment,
-            )
+            ).model_dump()
         )
-    return out
+    return json_response(out)
 
 
 # ---- stats ----
 
 
-@router.get("/stats", response_model=schemas.PlayerStatsOut)
-def stats(db: Session = Depends(get_db), player: models.User = Depends(_current_player)):
+@player_bp.get("/stats")
+def stats():
+    db = get_db()
+    player = _current_player()
     attendance_rows = _attendance_rows(db, player)
     counted = [r for r in attendance_rows if r.status != "Upcoming"]
     attended = sum(1 for r in counted if r.status in ("Present", "Late"))
@@ -151,7 +164,7 @@ def stats(db: Session = Depends(get_db), player: models.User = Depends(_current_
     ranked = _teammates(db, player)
     rank = next((i + 1 for i, (t, _) in enumerate(ranked) if t.id == player.id), len(ranked))
 
-    return schemas.PlayerStatsOut(
+    out = schemas.PlayerStatsOut(
         attendance_rate=rate,
         sessions_attended=attended,
         avg_evaluation=avg_eval,
@@ -159,22 +172,26 @@ def stats(db: Session = Depends(get_db), player: models.User = Depends(_current_
         team_size=len(ranked),
         teammates=[schemas.TeammateOut(name=t.name, attendance_pct=pct) for t, pct in ranked],
     )
+    return json_response(out)
 
 
 # ---- profile ----
 
 
-@router.get("/profile", response_model=schemas.UserOut)
-def get_profile(player: models.User = Depends(_current_player)):
-    return player
+@player_bp.get("/profile")
+def get_profile():
+    return json_response(dump(schemas.UserOut, _current_player()))
 
 
-@router.patch("/profile", response_model=schemas.UserOut)
-def update_profile(payload: schemas.ProfileUpdate, db: Session = Depends(get_db), player: models.User = Depends(_current_player)):
+@player_bp.patch("/profile")
+def update_profile():
+    payload = parse_body(schemas.ProfileUpdate)
+    db = get_db()
+    player = _current_player()
     for field in ("name", "sport", "email", "phone", "bio", "position", "year"):
         value = getattr(payload, field)
         if value is not None:
             setattr(player, field, value)
     db.commit()
     db.refresh(player)
-    return player
+    return json_response(dump(schemas.UserOut, player))

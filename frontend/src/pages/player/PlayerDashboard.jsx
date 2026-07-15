@@ -6,6 +6,7 @@ import { useFetch } from "../../hooks/useFetch";
 import { Loading, ErrorAlert } from "../../components/Feedback";
 import StatCard from "../../components/StatCard";
 import PageHeader from "../../components/PageHeader";
+import { MSU_MAROON, NEUTRAL_FILL, TRIPLET_METRICS } from "../../chartPalette";
 
 export default function PlayerDashboard() {
   const { data, loading, error } = useFetch("/player/dashboard");
@@ -52,7 +53,7 @@ export default function PlayerDashboard() {
                       datasets: [
                         {
                           data: [data.attendance_rate, Math.max(100 - data.attendance_rate, 0)],
-                          backgroundColor: ["#0d6efd", "#e9ecef"],
+                          backgroundColor: [MSU_MAROON, NEUTRAL_FILL],
                         },
                       ],
                     }}
@@ -72,7 +73,7 @@ export default function PlayerDashboard() {
                         {
                           label: "Count",
                           data: [data.sessions_attended, data.upcoming_sessions, data.activities_completed],
-                          backgroundColor: "#0d6efd",
+                          backgroundColor: TRIPLET_METRICS,
                           borderRadius: 4,
                         },
                       ],

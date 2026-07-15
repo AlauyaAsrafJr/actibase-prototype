@@ -1,12 +1,46 @@
 :root {
-  --ab-brand: #0d6efd;
-  --ab-sidebar-bg: #101828;
-  --ab-sidebar-fg: #cbd5e1;
-  --ab-sidebar-active: #1d2939;
+  /* MSU campus identity — maroon & gold */
+  --msu-maroon: #7a1030;
+  --msu-maroon-dark: #5c0a24;
+  --msu-maroon-tint: #f5e7eb;
+  --msu-gold: #c9a227;
+  --msu-gold-dark: #a3811b;
+  --msu-gold-tint: #faf3df;
+  --msu-cream: #faf6ec;
+  --msu-sidebar-bg: #47091d;
+  --msu-sidebar-active: #62122f;
+  --msu-sidebar-fg: #e3c9cf;
+
+  --font-collegiate: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
 }
 
 body {
-  background-color: #f5f6f8;
+  background-color: var(--msu-cream);
+}
+
+/* Retint Bootstrap's primary utilities/components to the MSU brand */
+.btn-primary {
+  --bs-btn-bg: var(--msu-maroon);
+  --bs-btn-border-color: var(--msu-maroon);
+  --bs-btn-hover-bg: var(--msu-maroon-dark);
+  --bs-btn-hover-border-color: var(--msu-maroon-dark);
+  --bs-btn-active-bg: var(--msu-maroon-dark);
+  --bs-btn-active-border-color: var(--msu-maroon-dark);
+  --bs-btn-disabled-bg: var(--msu-maroon);
+  --bs-btn-disabled-border-color: var(--msu-maroon);
+  --bs-btn-focus-shadow-rgb: 122, 16, 48;
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--msu-maroon);
+  --bs-btn-border-color: var(--msu-maroon);
+  --bs-btn-hover-bg: var(--msu-maroon);
+  --bs-btn-hover-border-color: var(--msu-maroon);
+  --bs-btn-active-bg: var(--msu-maroon);
+  --bs-btn-active-border-color: var(--msu-maroon);
+}
+a,
+.text-primary {
+  color: var(--msu-maroon);
 }
 
 .ab-app-shell {
@@ -17,19 +51,21 @@ body {
 .ab-sidebar {
   width: 240px;
   flex-shrink: 0;
-  background: var(--ab-sidebar-bg);
-  color: var(--ab-sidebar-fg);
+  background: var(--msu-sidebar-bg);
+  color: var(--msu-sidebar-fg);
   min-height: 100vh;
   position: sticky;
   top: 0;
   display: flex;
   flex-direction: column;
+  border-right: 3px solid var(--msu-gold);
 }
 
 .ab-sidebar-brand {
-  padding: 1.25rem 1.25rem 0.75rem;
+  padding: 1.25rem 1.25rem 0.6rem;
+  font-family: var(--font-collegiate);
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.3rem;
   color: #fff;
   letter-spacing: -0.01em;
 }
@@ -39,32 +75,37 @@ body {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #64748b;
+  color: var(--msu-gold);
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 1rem;
+  margin-bottom: 0.25rem;
 }
 
 .ab-sidebar .nav-link {
-  color: var(--ab-sidebar-fg);
+  color: var(--msu-sidebar-fg);
   padding: 0.6rem 1.25rem;
   border-radius: 0;
   font-size: 0.92rem;
+  border-left: 3px solid transparent;
 }
 
 .ab-sidebar .nav-link:hover {
-  background: var(--ab-sidebar-active);
+  background: var(--msu-sidebar-active);
   color: #fff;
 }
 
 .ab-sidebar .nav-link.active {
-  background: var(--ab-sidebar-active);
+  background: var(--msu-sidebar-active);
   color: #fff;
-  border-left: 3px solid var(--ab-brand);
+  border-left: 3px solid var(--msu-gold);
   font-weight: 600;
 }
 
 .ab-sidebar-footer {
   margin-top: auto;
   padding: 1rem 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .ab-main {
@@ -74,7 +115,7 @@ body {
 
 .ab-topbar {
   background: #fff;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 3px solid var(--msu-gold);
   padding: 0.85rem 1.5rem;
 }
 
@@ -82,8 +123,13 @@ body {
   padding: 1.5rem;
 }
 
+.ab-avatar {
+  background: var(--msu-maroon);
+}
+
 .ab-stat-card {
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e9ddd0;
+  border-top: 3px solid var(--msu-gold);
   border-radius: 0.6rem;
   background: #fff;
 }
@@ -92,6 +138,7 @@ body {
   font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.1;
+  color: var(--msu-maroon-dark);
 }
 
 .ab-stat-label {
@@ -101,17 +148,28 @@ body {
   color: #6b7280;
 }
 
+h1.h5,
+h2.h4,
+.card-title {
+  font-family: var(--font-collegiate);
+}
+
 .ab-auth-shell {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #101828 0%, #101828 40%, #f5f6f8 40%);
+  background: linear-gradient(160deg, #47091d 0%, #7a1030 45%, #a3811b 85%, #c9a227 100%);
 }
 
 .ab-auth-card {
   width: 100%;
   max-width: 420px;
+}
+
+.ab-auth-card .fw-bold.fs-4 {
+  font-family: var(--font-collegiate);
+  color: var(--msu-maroon-dark);
 }
 
 @media (max-width: 768px) {

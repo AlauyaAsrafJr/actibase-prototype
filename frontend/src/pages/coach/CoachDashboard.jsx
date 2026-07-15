@@ -6,6 +6,7 @@ import { useFetch } from "../../hooks/useFetch";
 import { Loading, ErrorAlert } from "../../components/Feedback";
 import StatCard from "../../components/StatCard";
 import PageHeader from "../../components/PageHeader";
+import { STATUS, TRIPLET_METRICS } from "../../chartPalette";
 
 export default function CoachDashboard() {
   const { data, loading, error } = useFetch("/coach/dashboard");
@@ -52,7 +53,7 @@ export default function CoachDashboard() {
                             Math.max(data.player_count - data.pending_evaluations, 0),
                             data.pending_evaluations,
                           ],
-                          backgroundColor: ["#20c997", "#ffc107"],
+                          backgroundColor: [STATUS.good, STATUS.warning],
                         },
                       ],
                     }}
@@ -72,7 +73,7 @@ export default function CoachDashboard() {
                         {
                           label: "Count",
                           data: [data.todays_sessions, data.upcoming_training, data.recent_feedback],
-                          backgroundColor: "#0d6efd",
+                          backgroundColor: TRIPLET_METRICS,
                           borderRadius: 4,
                         },
                       ],

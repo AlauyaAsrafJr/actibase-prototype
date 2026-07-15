@@ -7,6 +7,7 @@ import { useAuth } from "../../context/AuthContext";
 import { Loading, ErrorAlert } from "../../components/Feedback";
 import StatCard from "../../components/StatCard";
 import PageHeader from "../../components/PageHeader";
+import { MSU_MAROON, NEUTRAL_FILL } from "../../chartPalette";
 
 export default function PlayerStats() {
   const { data, loading, error } = useFetch("/player/stats");
@@ -44,7 +45,7 @@ export default function PlayerStats() {
                     {
                       label: "Attendance %",
                       data: data.teammates.map((t) => t.attendance_pct),
-                      backgroundColor: data.teammates.map((t) => (t.name === user?.name ? "#0d6efd" : "#adb5bd")),
+                      backgroundColor: data.teammates.map((t) => (t.name === user?.name ? MSU_MAROON : NEUTRAL_FILL)),
                       borderRadius: 4,
                     },
                   ],

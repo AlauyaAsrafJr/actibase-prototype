@@ -43,7 +43,7 @@ export default function AppLayout({ role, title }) {
   }
 
   return (
-    <div className="ab-app-shell">
+    <div className="ab-app-shell" data-role={role}>
       <aside className="ab-sidebar">
         <div className="ab-sidebar-brand">Actibase</div>
         <div className="ab-sidebar-role">{ROLE_LABEL[role]} Module</div>
@@ -75,7 +75,7 @@ export default function AppLayout({ role, title }) {
               id="user-menu"
             >
               <span
-                className="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center"
+                className="ab-avatar rounded-circle text-white d-inline-flex align-items-center justify-content-center"
                 style={{ width: 28, height: 28, fontSize: 13 }}
               >
                 {user?.name?.[0]?.toUpperCase() ?? "?"}

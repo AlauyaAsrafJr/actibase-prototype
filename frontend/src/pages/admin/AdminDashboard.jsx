@@ -6,6 +6,7 @@ import { useFetch } from "../../hooks/useFetch";
 import { Loading, ErrorAlert } from "../../components/Feedback";
 import StatCard from "../../components/StatCard";
 import PageHeader from "../../components/PageHeader";
+import { TRIPLET_IDENTITY, TRIPLET_METRICS } from "../../chartPalette";
 
 export default function AdminDashboard() {
   const { data, loading, error } = useFetch("/admin/dashboard");
@@ -53,7 +54,7 @@ export default function AdminDashboard() {
                             data.total_coaches,
                             Math.max(data.total_users_active - data.total_coaches, 0),
                           ],
-                          backgroundColor: ["#0d6efd", "#20c997", "#ffc107"],
+                          backgroundColor: TRIPLET_IDENTITY,
                         },
                       ],
                     }}
@@ -73,7 +74,7 @@ export default function AdminDashboard() {
                         {
                           label: "Count",
                           data: [data.total_sessions, data.total_reports, data.archived_records],
-                          backgroundColor: "#0d6efd",
+                          backgroundColor: TRIPLET_METRICS,
                           borderRadius: 4,
                         },
                       ],

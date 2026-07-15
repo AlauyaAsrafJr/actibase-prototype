@@ -27,7 +27,8 @@ def login_required(fn):
 
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        g.current_user = _authenticate()
+        if request.method != "OPTIONS":
+            g.current_user = _authenticate()
         return fn(*args, **kwargs)
 
     return wrapper
@@ -37,6 +38,8 @@ def require_role(*roles: str):
     """Blueprint-level guard: register with `blueprint.before_request(require_role("admin"))`."""
 
     def hook():
+        if request.method == "OPTIONS":
+            return None  # let CORS preflight through unauthenticated
         user = _authenticate()
         if user.role not in roles:
             raise ApiError(f"Requires role: {', '.join(roles)}", 403)

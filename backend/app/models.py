@@ -126,4 +126,4 @@ class ArchiveRecord(Base):
     type: Mapped[str] = mapped_column(String(20))  # Player | User | Session
     archived_on: Mapped[str] = mapped_column(String(40))
     archived_by: Mapped[str] = mapped_column(String(120))
-    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)

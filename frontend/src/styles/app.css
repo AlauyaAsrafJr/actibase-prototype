@@ -1,0 +1,130 @@
+:root {
+  --ab-brand: #0d6efd;
+  --ab-sidebar-bg: #101828;
+  --ab-sidebar-fg: #cbd5e1;
+  --ab-sidebar-active: #1d2939;
+}
+
+body {
+  background-color: #f5f6f8;
+}
+
+.ab-app-shell {
+  min-height: 100vh;
+  display: flex;
+}
+
+.ab-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--ab-sidebar-bg);
+  color: var(--ab-sidebar-fg);
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ab-sidebar-brand {
+  padding: 1.25rem 1.25rem 0.75rem;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.ab-sidebar-role {
+  padding: 0 1.25rem 1rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+}
+
+.ab-sidebar .nav-link {
+  color: var(--ab-sidebar-fg);
+  padding: 0.6rem 1.25rem;
+  border-radius: 0;
+  font-size: 0.92rem;
+}
+
+.ab-sidebar .nav-link:hover {
+  background: var(--ab-sidebar-active);
+  color: #fff;
+}
+
+.ab-sidebar .nav-link.active {
+  background: var(--ab-sidebar-active);
+  color: #fff;
+  border-left: 3px solid var(--ab-brand);
+  font-weight: 600;
+}
+
+.ab-sidebar-footer {
+  margin-top: auto;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ab-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ab-topbar {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.85rem 1.5rem;
+}
+
+.ab-content {
+  padding: 1.5rem;
+}
+
+.ab-stat-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.6rem;
+  background: #fff;
+}
+
+.ab-stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.ab-stat-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+.ab-auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #101828 0%, #101828 40%, #f5f6f8 40%);
+}
+
+.ab-auth-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+@media (max-width: 768px) {
+  .ab-sidebar {
+    width: 72px;
+  }
+  .ab-sidebar-brand,
+  .ab-sidebar-role,
+  .ab-nav-label {
+    display: none;
+  }
+  .ab-sidebar .nav-link {
+    text-align: center;
+    padding: 0.75rem 0.25rem;
+  }
+}

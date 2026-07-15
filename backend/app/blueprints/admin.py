@@ -249,10 +249,10 @@ def delete_archive_forever(record_id: int):
     record = db.get(models.ArchiveRecord, record_id)
     if record is None:
         raise ApiError("Archive record not found", 404)
-    if record.user_id:
-        user = db.get(models.User, record.user_id)
-        if user:
-            db.delete(user)
+    user = db.get(models.User, record.user_id) if record.user_id else None
     db.delete(record)
+    db.flush()
+    if user:
+        db.delete(user)
     db.commit()
     return "", 204

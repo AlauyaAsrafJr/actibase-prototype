@@ -1,5 +1,17 @@
 # Actibase Admin, Coach & Player Modules (plain HTML/CSS/JS)
 
+> This repo now also has two other pieces, built later and documented in
+> their own READMEs:
+> - **`backend/`** — a Flask + PostgreSQL API implementing real auth and
+>   CRUD for all three roles. See `backend/README.md`.
+> - **`frontend/`** — a React + Bootstrap + Chart.js single-page app wired
+>   to that API — the current, actively-developed frontend. See
+>   `frontend/README.md`.
+>
+> Everything below describes the original static site (`index.html`,
+> `admin.html`, `coach.html`, `player.html`, `register.html` at the repo
+> root), which still works standalone on mock data and is kept as-is.
+
 Dashboards and a login page for Actibase, each implementing a Claude
 Design prototype as a static HTML/CSS/vanilla-JS app — no framework, no
 build step:

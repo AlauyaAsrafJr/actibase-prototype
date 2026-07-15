@@ -173,16 +173,41 @@ h2.h4,
 }
 
 @media (max-width: 768px) {
-  .ab-sidebar {
-    width: 72px;
+  .ab-app-shell {
+    flex-direction: column;
   }
-  .ab-sidebar-brand,
+  .ab-sidebar {
+    width: 100%;
+    min-height: auto;
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    border-right: none;
+    border-bottom: 3px solid var(--msu-gold);
+    flex-wrap: nowrap;
+  }
+  .ab-sidebar-brand {
+    padding: 0.75rem 0.75rem 0.75rem 1rem;
+    white-space: nowrap;
+  }
   .ab-sidebar-role,
-  .ab-nav-label {
+  .ab-sidebar-footer {
     display: none;
   }
+  .ab-sidebar nav {
+    flex-direction: row !important;
+    overflow-x: auto;
+    flex-grow: 0 !important;
+    -webkit-overflow-scrolling: touch;
+  }
   .ab-sidebar .nav-link {
-    text-align: center;
-    padding: 0.75rem 0.25rem;
+    white-space: nowrap;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    padding: 0.85rem 0.9rem;
+  }
+  .ab-sidebar .nav-link.active {
+    border-left: none;
+    border-bottom: 3px solid var(--msu-gold);
   }
 }

@@ -4,7 +4,7 @@ from . import models
 
 
 def attendance_pct(db: Session, player_id: int) -> int:
-    records = db.query(models.AttendanceRecord).filter(models.AttendanceRecord.player_id == player_id).all()
+    records = db.query(models.Attendance).filter(models.Attendance.player_id == player_id).all()
     if not records:
         return 0
     present_or_late = sum(1 for r in records if r.status in ("present", "late"))
@@ -13,13 +13,13 @@ def attendance_pct(db: Session, player_id: int) -> int:
 
 def last_eval_date(db: Session, player_id: int) -> str:
     latest = (
-        db.query(models.Evaluation)
-        .filter(models.Evaluation.player_id == player_id)
-        .order_by(models.Evaluation.id.desc())
+        db.query(models.PerformanceFeedback)
+        .filter(models.PerformanceFeedback.player_id == player_id)
+        .order_by(models.PerformanceFeedback.feedback_id.desc())
         .first()
     )
-    return latest.date if latest else "—"
+    return latest.feedback_date if latest else "—"
 
 
-def eval_average(evaluation: models.Evaluation) -> float:
-    return round((evaluation.skill + evaluation.effort + evaluation.teamwork + evaluation.attitude) / 4, 1)
+def eval_average(feedback: models.PerformanceFeedback) -> float:
+    return round((feedback.skill + feedback.effort + feedback.teamwork + feedback.attitude) / 4, 1)

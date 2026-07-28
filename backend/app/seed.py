@@ -1,24 +1,30 @@
-"""Seed the database with data equivalent to the frontend's mock data
-(js/data.js, js/coach-data.js, js/player-data.js), reconciled into one
-coherent relational dataset now that Admin/Coach/Player are all rows in
-the same `users` table.
+"""Seed the database to match the approved ERD (Figure 3.2.4) — System
+User + Player/Coach/Admin profile tables, Training Activities,
+Participation, Attendance, Performance Feedback, Reports/Analytics,
+Statistics, Login History, and Archived Records.
 
 Run with: python -m app.seed
 """
+
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
 from .config import TODAY_LABEL
 from .database import Base, SessionLocal, engine
 from .models import (
-    ActivityAssignment,
-    Activity,
-    ArchiveRecord,
-    AttendanceRecord,
-    Evaluation,
-    Report,
-    TrainingSession,
-    User,
+    Admin,
+    ArchivedRecord,
+    Attendance,
+    Coach,
+    LoginHistory,
+    Participation,
+    Player,
+    PerformanceFeedback,
+    ReportAnalytics,
+    Statistic,
+    SystemUser,
+    TrainingActivity,
 )
 from .security import hash_password
 
@@ -49,77 +55,105 @@ BASKETBALL_ROSTER = [
 ]
 
 
-def make_user(db: Session, name: str, email: str, role: str, password: str, **extra) -> User:
-    user = User(name=name, email=email, password_hash=hash_password(password), role=role, status="Active", last_active="Today", **extra)
-    db.add(user)
+def _split(name: str) -> tuple[str, str]:
+    parts = name.strip().split(" ", 1)
+    return (parts[0], parts[1] if len(parts) > 1 else "")
+
+
+def make_admin(db: Session, name: str, email: str, password: str) -> tuple[SystemUser, Admin]:
+    su = SystemUser(username=email, password=hash_password(password), role="admin", status="Active", last_login="Today")
+    db.add(su)
     db.flush()
-    return user
+    first, last = _split(name)
+    admin = Admin(user_id=su.user_id, first_name=first, last_name=last, email=email)
+    db.add(admin)
+    db.flush()
+    return su, admin
+
+
+def make_coach(db: Session, name: str, email: str, password: str, **extra) -> tuple[SystemUser, Coach]:
+    su = SystemUser(username=email, password=hash_password(password), role="coach", status="Active", last_login="Today")
+    db.add(su)
+    db.flush()
+    first, last = _split(name)
+    coach = Coach(user_id=su.user_id, first_name=first, last_name=last, email=email, **extra)
+    db.add(coach)
+    db.flush()
+    return su, coach
+
+
+def make_player(db: Session, name: str, email: str, password: str, coach: Coach, **extra) -> tuple[SystemUser, Player]:
+    su = SystemUser(username=email, password=hash_password(password), role="player", status="Active", last_login="Today")
+    db.add(su)
+    db.flush()
+    first, last = _split(name)
+    player = Player(user_id=su.user_id, first_name=first, last_name=last, email=email, coach_id=coach.coach_id, **extra)
+    db.add(player)
+    db.flush()
+    return su, player
 
 
 def seed(db: Session) -> None:
-    if db.query(User).count() > 0:
-        print("Database already has data — skipping seed. Delete actibase.db to reseed.")
+    if db.query(SystemUser).count() > 0:
+        print("Database already has data — skipping seed. Truncate the tables to reseed.")
         return
 
-    # ---- admins & staff ----
-    dana = make_user(db, "Dana Whitfield", "dana.whitfield@actibase.edu", "admin", DEMO_PASSWORD)
-    make_user(db, "Theo Park", "theo.park@actibase.edu", "admin", DEFAULT_PASSWORD)
-    make_user(db, "Nora Kim", "nora.kim@actibase.edu", "staff", DEFAULT_PASSWORD)
-    make_user(db, "Ben Foster", "ben.foster@actibase.edu", "staff", DEFAULT_PASSWORD)
-    make_user(db, "Ivy Sanders", "ivy.sanders@actibase.edu", "staff", DEFAULT_PASSWORD)
-    leo = make_user(db, "Leo Martins", "leo.martins@actibase.edu", "staff", DEFAULT_PASSWORD)
-    leo.status = "Inactive"
+    # ---- admins ----
+    dana_su, dana = make_admin(db, "Dana Whitfield", "dana.whitfield@actibase.edu", DEMO_PASSWORD)
+    make_admin(db, "Theo Park", "theo.park@actibase.edu", DEFAULT_PASSWORD)
+    make_admin(db, "Nora Kim", "nora.kim@actibase.edu", DEFAULT_PASSWORD)
+    make_admin(db, "Ben Foster", "ben.foster@actibase.edu", DEFAULT_PASSWORD)
+    make_admin(db, "Ivy Sanders", "ivy.sanders@actibase.edu", DEFAULT_PASSWORD)
+    leo_su, _leo = make_admin(db, "Leo Martins", "leo.martins@actibase.edu", DEFAULT_PASSWORD)
+    leo_su.status = "Inactive"
 
     # ---- Marcus Bailey (Basketball) — the fully-featured coach ----
-    marcus = make_user(db, "Marcus Bailey", "marcus.bailey@actibase.edu", "coach", DEMO_PASSWORD,
-                        sport="Basketball", phone="(555) 019-2231", years_coaching="6",
-                        bio="Focused on building fundamentals, discipline and team chemistry every season.")
+    marcus_su, marcus = make_coach(
+        db, "Marcus Bailey", "marcus.bailey@actibase.edu", DEMO_PASSWORD,
+        specialization="Basketball", contact_number="(555) 019-2231", years_coaching="6",
+        bio="Focused on building fundamentals, discipline and team chemistry every season.",
+    )
 
-    players_by_email: dict[str, User] = {}
+    players_by_name: dict[str, Player] = {}
     for name, year, position, password in BASKETBALL_ROSTER:
         email = name.lower().replace(" ", ".") + "@actibase.edu"
-        p = make_user(db, name, email, "player", password, sport="Basketball", position=position, year=year, coach_id=marcus.id)
-        players_by_email[name] = p
+        _su, p = make_player(db, name, email, password, marcus, position=position, year=year)
+        players_by_name[name] = p
     db.flush()
 
     # ---- other 7 coaches, each with a light 2-player roster ----
+    other_coaches: dict[str, Coach] = {}
     for coach_name, sport, roster in OTHER_SPORTS_COACHES:
         coach_email = coach_name.lower().replace(" ", ".") + "@actibase.edu"
-        coach = make_user(db, coach_name, coach_email, "coach", DEFAULT_PASSWORD, sport=sport,
-                           phone="(555) 010-0000", years_coaching="4", bio=f"Building a competitive {sport} program.")
+        _csu, coach = make_coach(
+            db, coach_name, coach_email, DEFAULT_PASSWORD, specialization=sport,
+            contact_number="(555) 010-0000", years_coaching="4", bio=f"Building a competitive {sport} program.",
+        )
+        other_coaches[sport] = coach
         for name, year, position in roster:
             email = name.lower().replace(" ", ".") + "@actibase.edu"
-            make_user(db, name, email, "player", DEFAULT_PASSWORD, sport=sport, position=position, year=year, coach_id=coach.id)
+            make_player(db, name, email, DEFAULT_PASSWORD, coach, position=position, year=year)
 
-        # generic 2-session history per sport so admin's program-wide session list has breadth
-        for date, kind, rate in [("Jul 7, 2026", "Practice", 88), ("Jul 10, 2026", "Scrimmage", 92)]:
-            total = 12
-            present = round(total * rate / 100)
-            db.add(TrainingSession(coach_id=coach.id, date=date, time="4:00 PM", type=kind, location="Home Field",
-                                    sport=sport, status="Completed", present=present, absent=total - present, total=total, rate=rate))
+        # generic 2-activity history per sport so admin's program-wide list has breadth
+        for date, kind in [("Jul 7, 2026", "Practice"), ("Jul 10, 2026", "Scrimmage")]:
+            db.add(TrainingActivity(coach_id=coach.coach_id, activity_name=kind, activity_date=date, time="4:00 PM", location="Home Field", status="Completed"))
     db.flush()
 
-    # ---- Marcus's training sessions ----
-    sessions_data = [
-        ("s0", "Jul 14, 2026", "4:00 PM", "Practice", "Main Gym", "Scheduled", None),
-        ("s1", "Jul 12, 2026", "4:00 PM", "Practice", "Main Gym", "Completed", (9, 1)),
-        ("s2", "Jul 9, 2026", "6:00 PM", "Scrimmage", "Away — Central High", "Completed", (10, 0)),
-        ("s3", "Jul 5, 2026", "4:00 PM", "Practice", "Main Gym", "Completed", (8, 2)),
-        ("s4", "Jul 18, 2026", "4:00 PM", "Practice", "Main Gym", "Scheduled", None),
+    # ---- Marcus's training activities ----
+    activities_data = [
+        ("s0", "Jul 14, 2026", "4:00 PM", "Practice", "Main Gym", "Scheduled", None, "Catch-and-shoot circuit plus full-court layup ladder."),
+        ("s1", "Jul 12, 2026", "4:00 PM", "Practice", "Main Gym", "Completed", (9, 1), "Free throw pressure reps under simulated fatigue."),
+        ("s2", "Jul 9, 2026", "6:00 PM", "Scrimmage", "Away — Central High", "Completed", (10, 0), "Live scrimmage against Central High."),
+        ("s3", "Jul 5, 2026", "4:00 PM", "Practice", "Main Gym", "Completed", (8, 2), "Suicides and sprint intervals for fourth-quarter conditioning."),
+        ("s4", "Jul 18, 2026", "4:00 PM", "Practice", "Main Gym", "Scheduled", None, "Defensive slide and close-out footwork."),
     ]
-    session_rows: dict[str, TrainingSession] = {}
-    roster_users = [players_by_email[n] for n, *_ in BASKETBALL_ROSTER]
-    for key, date, time, kind, location, status, counts in sessions_data:
-        total = len(roster_users)
-        present = absent = rate = None
-        if counts:
-            present, absent = counts
-            rate = round(present / total * 100)
-        session = TrainingSession(coach_id=marcus.id, date=date, time=time, type=kind, location=location,
-                                   sport="Basketball", status=status, present=present, absent=absent, total=total, rate=rate)
-        db.add(session)
+    activity_rows: dict[str, TrainingActivity] = {}
+    roster_players = [players_by_name[n] for n, *_ in BASKETBALL_ROSTER]
+    for key, date, time, kind, location, status, counts, notes in activities_data:
+        activity = TrainingActivity(coach_id=marcus.coach_id, activity_name=kind, activity_date=date, time=time, location=location, duration="90 min", notes=notes, status=status)
+        db.add(activity)
         db.flush()
-        session_rows[key] = session
+        activity_rows[key] = activity
 
         if counts:
             absent_names = {
@@ -129,37 +163,13 @@ def seed(db: Session) -> None:
             }[key]
             for name, *_ in BASKETBALL_ROSTER:
                 status_val = "absent" if name in absent_names else "present"
-                db.add(AttendanceRecord(session_id=session.id, player_id=players_by_email[name].id, status=status_val))
+                player = players_by_name[name]
+                db.add(Attendance(player_id=player.player_id, coach_id=marcus.coach_id, date=date, status=status_val))
+                db.add(Participation(player_id=player.player_id, activity_id=activity.activity_id, participation_status="Absent" if status_val == "absent" else "Completed"))
+    db.flush()
 
-    # ---- activities + assignments ----
-    activities_data = [
-        ("Full-Court Layup Ladder", "Ball Handling", "15 min", "Beginner",
-         "Continuous layup drill building speed and control off the dribble.", ["s0"]),
-        ("Catch-and-Shoot Circuit", "Shooting", "20 min", "Intermediate",
-         "Five-spot perimeter shooting off the catch with passer rotation.", ["s0"]),
-        ("Defensive Slide & Close-Out", "Defense", "12 min", "Intermediate",
-         "Lateral slide footwork into closeout reps against a live shooter.", []),
-        ("Suicides & Sprint Intervals", "Conditioning", "10 min", "Advanced",
-         "Baseline sprint intervals to build fourth-quarter endurance.", ["s3"]),
-        ("3-on-3 Read & React", "Team Play", "18 min", "Advanced",
-         "Small-sided scrimmage emphasizing spacing and ball movement.", []),
-        ("Two-Ball Dribbling Series", "Ball Handling", "10 min", "Intermediate",
-         "Simultaneous two-ball combos to sharpen handle under pressure.", []),
-        ("Free Throw Pressure Reps", "Shooting", "8 min", "Beginner",
-         "Free throws under simulated fatigue and crowd-noise pressure.", ["s1"]),
-        ("Box-Out & Rebound Battle", "Defense", "12 min", "Beginner",
-         "Live box-out reps followed by a rebounding scramble drill.", []),
-    ]
-    for name, category, duration, difficulty, description, assigned in activities_data:
-        activity = Activity(coach_id=marcus.id, name=name, category=category, duration=duration,
-                             difficulty=difficulty, description=description)
-        db.add(activity)
-        db.flush()
-        for session_key in assigned:
-            db.add(ActivityAssignment(activity_id=activity.id, session_id=session_rows[session_key].id))
-
-    # ---- evaluations (Tyler gets a fuller history to match the Player Module demo) ----
-    evaluations_data = [
+    # ---- performance feedback (Tyler gets a fuller history) ----
+    feedback_data = [
         ("Tyler Owens", "Jul 5, 2026", 4, 5, 4, 5, "Strong leadership on court."),
         ("Tyler Owens", "Jun 12, 2026", 4, 4, 4, 4, "Solid consistency, keep working on left-hand finishes."),
         ("Tyler Owens", "May 20, 2026", 3, 4, 4, 4, "Good energy in practice; needs sharper on-ball defense."),
@@ -167,11 +177,15 @@ def seed(db: Session) -> None:
         ("Marcus Hill", "Jul 2, 2026", 3, 3, 3, 4, "Needs more consistency in practice."),
         ("Devon Marsh", "Jul 1, 2026", 5, 4, 5, 4, "Excellent floor vision."),
     ]
-    for player_name, date, skill, effort, teamwork, attitude, comment in evaluations_data:
-        db.add(Evaluation(player_id=players_by_email[player_name].id, coach_id=marcus.id, date=date,
-                           skill=skill, effort=effort, teamwork=teamwork, attitude=attitude, comment=comment))
+    for player_name, date, skill, effort, teamwork, attitude, comment in feedback_data:
+        player = players_by_name[player_name]
+        overall = round((skill + effort + teamwork + attitude) / 4)
+        db.add(PerformanceFeedback(
+            player_id=player.player_id, coach_id=marcus.coach_id, feedback_date=date,
+            skill=skill, effort=effort, teamwork=teamwork, attitude=attitude, rating=overall, comments=comment,
+        ))
 
-    # ---- reports ----
+    # ---- reports/analytics ----
     admin_reports = [
         ("Weekly Attendance Summary", "All sports", "Jul 6–12, 2026", "Jul 13, 2026", "Ready"),
         ("Basketball Engagement Report", "Basketball", "Jun 1–30, 2026", "Jul 2, 2026", "Ready"),
@@ -182,40 +196,46 @@ def seed(db: Session) -> None:
         ("Inactive Players Watchlist", "All sports", "This term", "Jul 8, 2026", "Ready"),
         ("Soccer Attendance Trend", "Soccer", "Last 7 days", "Jul 12, 2026", "Generating"),
     ]
-    for name, sport, range_, generated_on, status in admin_reports:
-        db.add(Report(owner_role="admin", name=name, sport=sport, range=range_, generated_on=generated_on, status=status))
+    for title, sport, range_, generated_on, status in admin_reports:
+        db.add(ReportAnalytics(report_type="Training", generated_by=dana_su.user_id, generated_date=generated_on, title=title, sport=sport, range=range_, status=status))
 
     coach_reports = [
         ("Weekly Attendance Summary — Basketball", "Jul 6–12, 2026", "Jul 13, 2026", "Ready"),
         ("Team Performance Report", "This term", "Jul 10, 2026", "Ready"),
         ("Player Evaluation Digest", "Last 30 days", "Jul 8, 2026", "Ready"),
     ]
-    for name, range_, generated_on, status in coach_reports:
-        db.add(Report(owner_role="coach", coach_id=marcus.id, name=name, sport="Basketball",
-                       range=range_, generated_on=generated_on, status=status))
+    for title, range_, generated_on, status in coach_reports:
+        db.add(ReportAnalytics(report_type="Training", generated_by=marcus_su.user_id, generated_date=generated_on, title=title, sport="Basketball", range=range_, status=status))
+
+    # ---- statistics ----
+    db.add(Statistic(stats_type="Attendance Summary", generated_by=dana_su.user_id, description="Program-wide attendance check", data_payload="91.2% average attendance across 24 players", generated_date="Jul 13, 2026"))
+    db.add(Statistic(stats_type="Performance Average", generated_by=marcus_su.user_id, description="Basketball roster performance check", data_payload="4.0/5 average performance rating across 6 evaluations", generated_date="Jul 10, 2026"))
+
+    # ---- login history ----
+    now = datetime.now(timezone.utc)
+    db.add(LoginHistory(user_id=dana_su.user_id, login_time=now - timedelta(hours=2), logout_time=now - timedelta(hours=1), ip_address="10.0.0.5", device_info="Chrome on Windows"))
+    db.add(LoginHistory(user_id=marcus_su.user_id, login_time=now - timedelta(hours=5), logout_time=now - timedelta(hours=4, minutes=10), ip_address="10.0.0.12", device_info="Safari on macOS"))
+    db.add(LoginHistory(user_id=players_by_name["Tyler Owens"].user_id, login_time=now - timedelta(minutes=40), ip_address="10.0.0.44", device_info="Chrome on Android"))
 
     # ---- archive (illustrative history, not tied to currently active rows) ----
     archive_data = [
-        ("Owen Reyes", "Player", "Jun 20, 2026", "Dana Whitfield"),
-        ("Casey Long (former Coach)", "User", "May 30, 2026", "Theo Park"),
-        ("Term 1 Attendance — Baseball", "Session", "Apr 15, 2026", "Dana Whitfield"),
-        ("Priya Fernandez", "Player", "Mar 2, 2026", "Dana Whitfield"),
-        ("Term 1 Attendance — Swimming", "Session", "Apr 15, 2026", "Theo Park"),
-        ("Marcus Boyd (former Staff)", "User", "Feb 18, 2026", "Dana Whitfield"),
-        ("Term 1 Attendance — Tennis", "Session", "Apr 15, 2026", "Theo Park"),
-        ("Ana Delgado", "Player", "Jan 22, 2026", "Dana Whitfield"),
-        ("Winter Term Report Set", "Session", "Jan 10, 2026", "Theo Park"),
-        ("Ravi Patel", "Player", "Dec 5, 2025", "Dana Whitfield"),
+        ("Owen Reyes", "Player", "Jun 20, 2026", dana_su.user_id),
+        ("Casey Long (former Coach)", "User", "May 30, 2026", None),
+        ("Priya Fernandez", "Player", "Mar 2, 2026", dana_su.user_id),
+        ("Marcus Boyd (former Admin)", "User", "Feb 18, 2026", dana_su.user_id),
+        ("Ana Delgado", "Player", "Jan 22, 2026", dana_su.user_id),
+        ("Ravi Patel", "Player", "Dec 5, 2025", dana_su.user_id),
     ]
     for name, type_, archived_on, archived_by in archive_data:
-        db.add(ArchiveRecord(name=name, type=type_, archived_on=archived_on, archived_by=archived_by))
+        db.add(ArchivedRecord(record_type=type_, record_id=None, archive_data=name, archived_at=archived_on, archived_by=archived_by))
 
     db.commit()
+    tyler = players_by_name["Tyler Owens"]
     print("Seeded database with demo data.")
     print(f"Demo login (any role, password '{DEMO_PASSWORD}'):")
     print(f"  Admin:  {dana.email}")
     print(f"  Coach:  {marcus.email}")
-    print(f"  Player: {players_by_email['Tyler Owens'].email}")
+    print(f"  Player: {tyler.email}")
 
 
 def main() -> None:

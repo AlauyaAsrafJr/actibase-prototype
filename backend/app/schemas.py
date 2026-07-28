@@ -17,6 +17,10 @@ class LoginRequest(BaseModel):
 
 
 class UserOut(BaseModel):
+    """Account-level representation. id is always system_users.user_id —
+    the one identifier shared across admin/coach accounts (see PlayerOut
+    for why players get their own id space)."""
+
     id: int
     name: str
     email: str
@@ -31,9 +35,6 @@ class UserOut(BaseModel):
     years_coaching: str | None = None
     coach_id: int | None = None
 
-    class Config:
-        from_attributes = True
-
 
 class TokenResponse(BaseModel):
     access_token: str
@@ -47,10 +48,27 @@ class TokenResponse(BaseModel):
 class AdminUserCreate(BaseModel):
     name: str
     email: EmailStr
-    role: str = "Coach"  # Admin | Coach | Staff
+    role: str = "Coach"  # Admin | Coach
 
 
-class PlayerOut(UserOut):
+class PlayerOut(BaseModel):
+    """id is players.player_id — its own id space, distinct from UserOut.id,
+    since player-scoped endpoints (roster, attendance, evaluations) all key
+    off the Player table's own primary key."""
+
+    id: int
+    user_id: int
+    name: str
+    email: str
+    role: str = "player"
+    status: str
+    last_active: str
+    sport: str | None = None
+    position: str | None = None
+    year: str | None = None
+    phone: str | None = None
+    bio: str | None = None
+    coach_id: int | None = None
     attendance_pct: int
     last_eval: str
     coach_name: str | None = None
@@ -69,9 +87,6 @@ class ReportOut(BaseModel):
     generated_on: str
     status: str
 
-    class Config:
-        from_attributes = True
-
 
 class ArchiveOut(BaseModel):
     id: int
@@ -79,9 +94,6 @@ class ArchiveOut(BaseModel):
     type: str
     archived_on: str
     archived_by: str
-
-    class Config:
-        from_attributes = True
 
 
 class BulkIds(BaseModel):
@@ -95,6 +107,35 @@ class AdminDashboardOut(BaseModel):
     total_sessions: int
     total_reports: int
     archived_records: int
+
+
+class ResetPasswordOut(BaseModel):
+    reset: bool
+    new_password: str
+
+
+class LoginHistoryOut(BaseModel):
+    id: int
+    user_name: str
+    role: str
+    login_time: str
+    logout_time: str | None
+    ip_address: str | None
+    device_info: str | None
+
+
+class StatisticCreate(BaseModel):
+    stats_type: str
+    description: str | None = None
+
+
+class StatisticOut(BaseModel):
+    id: int
+    stats_type: str
+    description: str
+    data_payload: str
+    generated_date: str
+    generated_by_name: str
 
 
 # ---- coach ----
@@ -113,7 +154,7 @@ class ProfileUpdate(BaseModel):
 
 class SessionCreate(BaseModel):
     date: str
-    time: str
+    time: str = ""
     type: str = "Practice"
     location: str = "Main Gym"
 
@@ -130,35 +171,6 @@ class SessionOut(BaseModel):
     absent: int | None
     total: int | None
     rate: int | None
-    activity_names: list[str] = []
-
-    class Config:
-        from_attributes = True
-
-
-class ActivityCreate(BaseModel):
-    name: str
-    category: str
-    duration: str
-    difficulty: str = "Beginner"
-    description: str = ""
-
-
-class ActivityOut(BaseModel):
-    id: int
-    name: str
-    category: str
-    duration: str
-    difficulty: str
-    description: str
-    assigned_session_ids: list[int] = []
-
-    class Config:
-        from_attributes = True
-
-
-class AssignActivityRequest(BaseModel):
-    session_id: int
 
 
 class AttendanceMarkRequest(BaseModel):
@@ -186,9 +198,6 @@ class EvaluationOut(BaseModel):
     attitude: int
     comment: str
 
-    class Config:
-        from_attributes = True
-
 
 class RosterPlayerOut(BaseModel):
     id: int
@@ -197,9 +206,6 @@ class RosterPlayerOut(BaseModel):
     position: str | None
     attendance_pct: int
     last_eval: str
-
-    class Config:
-        from_attributes = True
 
 
 class CoachDashboardOut(BaseModel):
@@ -214,28 +220,21 @@ class CoachDashboardOut(BaseModel):
 # ---- player ----
 
 
+class PlayerActivityOut(BaseModel):
+    id: int
+    name: str
+    date: str
+    duration: str | None = None
+    notes: str | None = None
+    participation_status: str
+
+
 class PlayerAttendanceOut(BaseModel):
     id: int
     date: str
     type: str
     location: str
     status: str
-
-    class Config:
-        from_attributes = True
-
-
-class PlayerActivityOut(BaseModel):
-    id: int
-    name: str
-    category: str
-    duration: str
-    difficulty: str
-    description: str
-    date: str
-
-    class Config:
-        from_attributes = True
 
 
 class PlayerEvaluationOut(BaseModel):
@@ -247,9 +246,6 @@ class PlayerEvaluationOut(BaseModel):
     teamwork: int
     attitude: int
     comment: str
-
-    class Config:
-        from_attributes = True
 
 
 class TeammateOut(BaseModel):

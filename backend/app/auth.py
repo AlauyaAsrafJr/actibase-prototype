@@ -8,7 +8,7 @@ from .errors import ApiError
 from .security import decode_access_token
 
 
-def _authenticate() -> models.User:
+def _authenticate() -> models.SystemUser:
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
         raise ApiError("Missing bearer token", 401)
@@ -16,7 +16,7 @@ def _authenticate() -> models.User:
     user_id = decode_access_token(token)
     if user_id is None:
         raise ApiError("Invalid or expired token", 401)
-    user = get_db().get(models.User, user_id)
+    user = get_db().get(models.SystemUser, user_id)
     if user is None or user.status == "Archived":
         raise ApiError("User no longer exists", 401)
     return user

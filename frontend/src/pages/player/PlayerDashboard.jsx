@@ -2,6 +2,7 @@ import { Doughnut, Bar } from "react-chartjs-2";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
+import { BarChart3, CalendarCheck, CalendarDays, ClipboardCheck, Dumbbell, Trophy } from "lucide-react";
 import { useFetch } from "../../hooks/useFetch";
 import { Loading, ErrorAlert } from "../../components/Feedback";
 import StatCard from "../../components/StatCard";
@@ -20,25 +21,27 @@ export default function PlayerDashboard() {
         <>
           <Row className="g-3 mb-4">
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Attendance rate" value={`${data.attendance_rate}%`} />
+              <StatCard label="Attendance rate" value={`${data.attendance_rate}%`} icon={BarChart3} tone="maroon" />
             </Col>
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Sessions attended" value={data.sessions_attended} />
+              <StatCard label="Sessions attended" value={data.sessions_attended} icon={CalendarCheck} tone="gold" />
             </Col>
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Upcoming sessions" value={data.upcoming_sessions} />
+              <StatCard label="Upcoming sessions" value={data.upcoming_sessions} icon={CalendarDays} tone="teal" />
             </Col>
             <Col xs={6} md={4} lg={2}>
               <StatCard
                 label="Latest evaluation"
                 value={data.latest_evaluation_avg != null ? `${data.latest_evaluation_avg}/5` : "—"}
+                icon={ClipboardCheck}
+                tone="blue"
               />
             </Col>
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Activities" value={data.activities_completed} />
+              <StatCard label="Activities" value={data.activities_completed} icon={Dumbbell} tone="maroon" />
             </Col>
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Team rank" value={`#${data.overall_rank} of ${data.team_size}`} />
+              <StatCard label="Team rank" value={`#${data.overall_rank} of ${data.team_size}`} icon={Trophy} tone="gold" />
             </Col>
           </Row>
 

@@ -2,6 +2,7 @@ import { Bar } from "react-chartjs-2";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
+import { BarChart3, CalendarCheck, ClipboardCheck, Trophy } from "lucide-react";
 import { useFetch } from "../../hooks/useFetch";
 import { useAuth } from "../../context/AuthContext";
 import { Loading, ErrorAlert } from "../../components/Feedback";
@@ -22,16 +23,16 @@ export default function PlayerStats() {
         <>
           <Row className="g-3 mb-4">
             <Col xs={6} md={3}>
-              <StatCard label="Attendance rate" value={`${data.attendance_rate}%`} />
+              <StatCard label="Attendance rate" value={`${data.attendance_rate}%`} icon={BarChart3} tone="maroon" />
             </Col>
             <Col xs={6} md={3}>
-              <StatCard label="Sessions attended" value={data.sessions_attended} />
+              <StatCard label="Sessions attended" value={data.sessions_attended} icon={CalendarCheck} tone="gold" />
             </Col>
             <Col xs={6} md={3}>
-              <StatCard label="Avg. evaluation" value={`${data.avg_evaluation}/5`} />
+              <StatCard label="Avg. evaluation" value={`${data.avg_evaluation}/5`} icon={ClipboardCheck} tone="teal" />
             </Col>
             <Col xs={6} md={3}>
-              <StatCard label="Team rank" value={`#${data.team_rank} of ${data.team_size}`} />
+              <StatCard label="Team rank" value={`#${data.team_rank} of ${data.team_size}`} icon={Trophy} tone="blue" />
             </Col>
           </Row>
 

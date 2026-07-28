@@ -9,12 +9,16 @@ export class ApiError extends Error {
 }
 
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
 }
 
-export function setToken(token) {
-  if (token) localStorage.setItem(TOKEN_KEY, token);
-  else localStorage.removeItem(TOKEN_KEY);
+// remember=true persists the session across browser restarts (localStorage);
+// remember=false keeps it only for the current tab (sessionStorage).
+export function setToken(token, remember = true) {
+  localStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+  if (!token) return;
+  (remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, token);
 }
 
 export async function request(method, path, body) {

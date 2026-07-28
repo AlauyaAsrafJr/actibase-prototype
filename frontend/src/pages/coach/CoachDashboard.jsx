@@ -2,6 +2,7 @@ import { Doughnut, Bar } from "react-chartjs-2";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
+import { BarChart3, CalendarDays, ClipboardCheck, Dumbbell, FileText, Users } from "lucide-react";
 import { useFetch } from "../../hooks/useFetch";
 import { Loading, ErrorAlert } from "../../components/Feedback";
 import StatCard from "../../components/StatCard";
@@ -20,22 +21,22 @@ export default function CoachDashboard() {
         <>
           <Row className="g-3 mb-4">
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Players" value={data.player_count} />
+              <StatCard label="Players" value={data.player_count} icon={Users} tone="maroon" />
             </Col>
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Today's sessions" value={data.todays_sessions} />
+              <StatCard label="Today's sessions" value={data.todays_sessions} icon={CalendarDays} tone="gold" />
             </Col>
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Attendance rate" value={`${data.attendance_rate}%`} />
+              <StatCard label="Attendance rate" value={`${data.attendance_rate}%`} icon={BarChart3} tone="teal" />
             </Col>
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Pending evaluations" value={data.pending_evaluations} />
+              <StatCard label="Pending evaluations" value={data.pending_evaluations} icon={ClipboardCheck} tone="blue" />
             </Col>
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Upcoming training" value={data.upcoming_training} />
+              <StatCard label="Upcoming training" value={data.upcoming_training} icon={Dumbbell} tone="maroon" />
             </Col>
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Recent feedback" value={data.recent_feedback} />
+              <StatCard label="Recent feedback" value={data.recent_feedback} icon={FileText} tone="gold" />
             </Col>
           </Row>
 

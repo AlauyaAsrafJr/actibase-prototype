@@ -2,6 +2,7 @@ import { Doughnut, Bar } from "react-chartjs-2";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
+import { Archive, CalendarDays, FileText, UserCircle, UserRound, Users } from "lucide-react";
 import { useFetch } from "../../hooks/useFetch";
 import { Loading, ErrorAlert } from "../../components/Feedback";
 import StatCard from "../../components/StatCard";
@@ -20,22 +21,22 @@ export default function AdminDashboard() {
         <>
           <Row className="g-3 mb-4">
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Players" value={data.total_players} />
+              <StatCard label="Players" value={data.total_players} icon={UserRound} tone="maroon" />
             </Col>
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Coaches" value={data.total_coaches} />
+              <StatCard label="Coaches" value={data.total_coaches} icon={Users} tone="gold" />
             </Col>
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Active accounts" value={data.total_users_active} />
+              <StatCard label="Active accounts" value={data.total_users_active} icon={UserCircle} tone="teal" />
             </Col>
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Sessions" value={data.total_sessions} />
+              <StatCard label="Sessions" value={data.total_sessions} icon={CalendarDays} tone="blue" />
             </Col>
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Reports" value={data.total_reports} />
+              <StatCard label="Reports" value={data.total_reports} icon={FileText} tone="maroon" />
             </Col>
             <Col xs={6} md={4} lg={2}>
-              <StatCard label="Archived" value={data.archived_records} />
+              <StatCard label="Archived" value={data.archived_records} icon={Archive} tone="gold" />
             </Col>
           </Row>
 

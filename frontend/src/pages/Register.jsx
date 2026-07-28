@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import ToggleButton from "react-bootstrap/ToggleButton";
+import { GraduationCap, Lock, Mail, User } from "lucide-react";
 import { api } from "../api/client";
 import { ErrorAlert } from "../components/Feedback";
+import AuthIllustration from "../components/AuthIllustration";
 
 const ROLES = [
   { value: "admin", label: "Admin" },
@@ -60,11 +61,17 @@ export default function Register() {
 
   return (
     <div className="ab-auth-shell">
-      <Card className="ab-auth-card shadow-sm">
-        <Card.Body className="p-4">
+      <div className="ab-auth-illustration d-none d-md-flex">
+        <AuthIllustration />
+      </div>
+      <div className="ab-auth-form-side">
+        <div className="ab-auth-card">
+          <div className="ab-auth-icon">
+            <GraduationCap size={26} />
+          </div>
           <div className="text-center mb-4">
-            <div className="fw-bold fs-4">Actibase</div>
-            <div className="text-muted small">Create your account</div>
+            <div className="fw-bold fs-4">Create your account</div>
+            <div className="text-muted small">Join Actibase as an admin, coach, or player.</div>
           </div>
 
           <ErrorAlert message={error} />
@@ -92,17 +99,23 @@ export default function Register() {
 
             <Form.Group className="mb-3" controlId="register-name">
               <Form.Label>Full name</Form.Label>
-              <Form.Control value={name} onChange={(e) => setName(e.target.value)} placeholder="Jordan Rivera" />
+              <div className="ab-input-icon-group">
+                <User size={16} />
+                <Form.Control value={name} onChange={(e) => setName(e.target.value)} placeholder="Jordan Rivera" />
+              </div>
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="register-email">
               <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@actibase.edu"
-              />
+              <div className="ab-input-icon-group">
+                <Mail size={16} />
+                <Form.Control
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@actibase.edu"
+                />
+              </div>
             </Form.Group>
 
             {needsSport && (
@@ -114,12 +127,15 @@ export default function Register() {
 
             <Form.Group className="mb-4" controlId="register-password">
               <Form.Label>Password</Form.Label>
-              <Form.Control
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
-              />
+              <div className="ab-input-icon-group">
+                <Lock size={16} />
+                <Form.Control
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="At least 6 characters"
+                />
+              </div>
             </Form.Group>
 
             <Button type="submit" variant="primary" className="w-100" disabled={submitting}>
@@ -130,8 +146,8 @@ export default function Register() {
           <div className="text-center mt-4 small">
             Already have an account? <Link to="/login">Sign in</Link>
           </div>
-        </Card.Body>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

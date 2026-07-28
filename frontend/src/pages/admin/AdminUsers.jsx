@@ -3,6 +3,7 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Badge from "react-bootstrap/Badge";
+import Alert from "react-bootstrap/Alert";
 import { useFetch } from "../../hooks/useFetch";
 import { api } from "../../api/client";
 import { Loading, ErrorAlert } from "../../components/Feedback";
@@ -18,8 +19,9 @@ export default function AdminUsers() {
   const [form, setForm] = useState({ name: "", email: "", role: "Coach" });
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [confirmTarget, setConfirmTarget] = useState(null); // { id, action: 'archive'|'delete', name }
+  const [confirmTarget, setConfirmTarget] = useState(null); // { id, action: 'archive'|'delete'|'reset'|'deactivate', name }
   const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -47,8 +49,13 @@ export default function AdminUsers() {
     try {
       if (confirmTarget.action === "archive") {
         await api.post(`/admin/users/${confirmTarget.id}/archive`);
-      } else {
+      } else if (confirmTarget.action === "delete") {
         await api.delete(`/admin/users/${confirmTarget.id}`);
+      } else if (confirmTarget.action === "deactivate") {
+        await api.post(`/admin/users/${confirmTarget.id}/deactivate`);
+      } else if (confirmTarget.action === "reset") {
+        const result = await api.post(`/admin/users/${confirmTarget.id}/reset-password`);
+        setNotice(`${confirmTarget.name}'s password was reset to "${result.new_password}".`);
       }
       setConfirmTarget(null);
       reload();
@@ -71,7 +78,21 @@ export default function AdminUsers() {
       key: "actions",
       label: "",
       render: (r) => (
-        <div className="d-flex gap-2 justify-content-end">
+        <div className="d-flex gap-2 justify-content-end flex-wrap">
+          <Button
+            size="sm"
+            variant="outline-secondary"
+            onClick={() => setConfirmTarget({ id: r.id, action: "reset", name: r.name })}
+          >
+            Reset password
+          </Button>
+          <Button
+            size="sm"
+            variant="outline-secondary"
+            onClick={() => setConfirmTarget({ id: r.id, action: "deactivate", name: r.name, status: r.status })}
+          >
+            {r.status === "Inactive" ? "Activate" : "Deactivate"}
+          </Button>
           <Button
             size="sm"
             variant="outline-secondary"
@@ -91,17 +112,38 @@ export default function AdminUsers() {
     },
   ];
 
+  const CONFIRM_COPY = {
+    delete: { title: "Delete user", body: `Permanently delete ${confirmTarget?.name}? This can't be undone.`, label: "Delete", variant: "danger" },
+    archive: { title: "Archive user", body: `Archive ${confirmTarget?.name}? They'll be moved to the archive and can be restored later.`, label: "Archive", variant: "secondary" },
+    reset: { title: "Reset password", body: `Reset ${confirmTarget?.name}'s password to the default ("changeme")?`, label: "Reset", variant: "secondary" },
+    deactivate: {
+      title: confirmTarget?.status === "Inactive" ? "Activate user" : "Deactivate user",
+      body:
+        confirmTarget?.status === "Inactive"
+          ? `Reactivate ${confirmTarget?.name}'s account?`
+          : `Deactivate ${confirmTarget?.name}'s account? They won't be able to log in until reactivated.`,
+      label: confirmTarget?.status === "Inactive" ? "Activate" : "Deactivate",
+      variant: "secondary",
+    },
+  };
+  const confirmCopy = confirmTarget ? CONFIRM_COPY[confirmTarget.action] : null;
+
   return (
     <div>
       <PageHeader
         title="Users"
-        subtitle="Admin, coach, and staff accounts."
+        subtitle="Admin and coach accounts."
         actions={
           <Button size="sm" onClick={() => setShowCreate(true)}>
             New user
           </Button>
         }
       />
+      {notice && (
+        <Alert variant="success" dismissible onClose={() => setNotice("")} className="mb-3">
+          {notice}
+        </Alert>
+      )}
       <ErrorAlert message={error} />
       {loading ? <Loading /> : <DataTable columns={columns} rows={users} emptyMessage="No users yet." />}
 
@@ -129,7 +171,6 @@ export default function AdminUsers() {
               <Form.Select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
                 <option value="Admin">Admin</option>
                 <option value="Coach">Coach</option>
-                <option value="Staff">Staff</option>
               </Form.Select>
             </Form.Group>
             <div className="text-muted small mt-3">New accounts get the default password &quot;changeme&quot;.</div>
@@ -147,14 +188,10 @@ export default function AdminUsers() {
 
       <ConfirmModal
         show={!!confirmTarget}
-        title={confirmTarget?.action === "delete" ? "Delete user" : "Archive user"}
-        body={
-          confirmTarget?.action === "delete"
-            ? `Permanently delete ${confirmTarget?.name}? This can't be undone.`
-            : `Archive ${confirmTarget?.name}? They'll be moved to the archive and can be restored later.`
-        }
-        confirmLabel={confirmTarget?.action === "delete" ? "Delete" : "Archive"}
-        variant={confirmTarget?.action === "delete" ? "danger" : "secondary"}
+        title={confirmCopy?.title}
+        body={confirmCopy?.body}
+        confirmLabel={confirmCopy?.label}
+        variant={confirmCopy?.variant}
         busy={busy}
         onConfirm={handleConfirm}
         onCancel={() => setConfirmTarget(null)}

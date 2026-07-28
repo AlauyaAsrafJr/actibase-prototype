@@ -2,6 +2,7 @@ import { Doughnut, Bar } from "react-chartjs-2";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
+import Badge from "react-bootstrap/Badge";
 import { Archive, CalendarDays, FileText, UserCircle, UserRound, Users } from "lucide-react";
 import { useFetch } from "../../hooks/useFetch";
 import { Loading, ErrorAlert } from "../../components/Feedback";
@@ -9,12 +10,23 @@ import StatCard from "../../components/StatCard";
 import PageHeader from "../../components/PageHeader";
 import { TRIPLET_IDENTITY, TRIPLET_METRICS } from "../../chartPalette";
 
+function HealthBadge() {
+  const { data: health } = useFetch("/admin/health");
+  if (!health) return null;
+  const ok = health.database === "connected";
+  return (
+    <Badge bg={ok ? "success" : "danger"} className="fw-normal">
+      Database: {ok ? "connected" : "error"}
+    </Badge>
+  );
+}
+
 export default function AdminDashboard() {
   const { data, loading, error } = useFetch("/admin/dashboard");
 
   return (
     <div>
-      <PageHeader title="Dashboard" subtitle="Program-wide overview across every sport." />
+      <PageHeader title="Dashboard" subtitle="Program-wide overview across every sport." actions={<HealthBadge />} />
       <ErrorAlert message={error} />
       {loading && <Loading />}
       {data && (

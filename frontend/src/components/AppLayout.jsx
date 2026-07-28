@@ -9,7 +9,9 @@ import {
   ClipboardCheck,
   Dumbbell,
   FileText,
+  History,
   LayoutDashboard,
+  TrendingUp,
   UserCircle,
   UserRound,
   Users,
@@ -24,13 +26,14 @@ const NAV_ITEMS = {
     { to: "/admin/players", label: "Players", icon: UserRound },
     { to: "/admin/sessions", label: "Sessions", icon: CalendarDays },
     { to: "/admin/reports", label: "Reports", icon: FileText },
+    { to: "/admin/statistics", label: "Statistics", icon: TrendingUp },
+    { to: "/admin/login-history", label: "Login History", icon: History },
     { to: "/admin/archive", label: "Archive", icon: Archive },
   ],
   coach: [
     { to: "/coach", label: "Dashboard", end: true, icon: LayoutDashboard },
     { to: "/coach/roster", label: "Roster", icon: Users },
     { to: "/coach/sessions", label: "Sessions", icon: CalendarDays },
-    { to: "/coach/activities", label: "Activities", icon: Dumbbell },
     { to: "/coach/evaluations", label: "Evaluations", icon: ClipboardCheck },
     { to: "/coach/reports", label: "Reports", icon: FileText },
     { to: "/coach/profile", label: "Profile", icon: UserCircle },
@@ -87,8 +90,8 @@ export default function AppLayout({ role, title }) {
   const items = NAV_ITEMS[role] || [];
   const { count: notifCount, items: notifItems } = useNotifications(role);
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await logout();
     navigate("/login", { replace: true });
   }
 

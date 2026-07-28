@@ -27,7 +27,12 @@ export function AuthProvider({ children }) {
     return data.user;
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch {
+      // Token may already be invalid/expired — still clear local state below.
+    }
     setToken(null);
     setUser(null);
   }, []);

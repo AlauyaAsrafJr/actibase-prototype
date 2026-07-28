@@ -36,11 +36,6 @@ export default function AdminSessions() {
       label: "Attendance",
       render: (r) => (r.rate != null ? `${r.present}/${r.total} (${r.rate}%)` : "—"),
     },
-    {
-      key: "activity_names",
-      label: "Activities",
-      render: (r) => (r.activity_names?.length ? r.activity_names.join(", ") : "—"),
-    },
   ];
 
   return (

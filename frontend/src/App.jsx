@@ -11,13 +11,14 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminPlayers from "./pages/admin/AdminPlayers";
 import AdminSessions from "./pages/admin/AdminSessions";
 import AdminReports from "./pages/admin/AdminReports";
+import AdminStatistics from "./pages/admin/AdminStatistics";
+import AdminLoginHistory from "./pages/admin/AdminLoginHistory";
 import AdminArchive from "./pages/admin/AdminArchive";
 
 import CoachDashboard from "./pages/coach/CoachDashboard";
 import CoachRoster from "./pages/coach/CoachRoster";
 import CoachSessions from "./pages/coach/CoachSessions";
 import CoachAttendance from "./pages/coach/CoachAttendance";
-import CoachActivities from "./pages/coach/CoachActivities";
 import CoachEvaluations from "./pages/coach/CoachEvaluations";
 import CoachReports from "./pages/coach/CoachReports";
 import CoachProfile from "./pages/coach/CoachProfile";
@@ -52,6 +53,8 @@ export default function App() {
               <Route path="/admin/players" element={<AdminPlayers />} />
               <Route path="/admin/sessions" element={<AdminSessions />} />
               <Route path="/admin/reports" element={<AdminReports />} />
+              <Route path="/admin/statistics" element={<AdminStatistics />} />
+              <Route path="/admin/login-history" element={<AdminLoginHistory />} />
               <Route path="/admin/archive" element={<AdminArchive />} />
             </Route>
           </Route>
@@ -62,7 +65,6 @@ export default function App() {
               <Route path="/coach/roster" element={<CoachRoster />} />
               <Route path="/coach/sessions" element={<CoachSessions />} />
               <Route path="/coach/sessions/:sessionId/attendance" element={<CoachAttendance />} />
-              <Route path="/coach/activities" element={<CoachActivities />} />
               <Route path="/coach/evaluations" element={<CoachEvaluations />} />
               <Route path="/coach/reports" element={<CoachReports />} />
               <Route path="/coach/profile" element={<CoachProfile />} />

@@ -72,6 +72,28 @@ def roster():
     return json_response([o.model_dump() for o in out])
 
 
+@coach_bp.patch("/roster/<int:player_id>")
+def update_roster_player(player_id: int):
+    payload = parse_body(schemas.RosterPlayerUpdate)
+    db = get_db()
+    coach = _current_coach(db)
+    player = db.get(models.Player, player_id)
+    if player is None or player.coach_id != coach.coach_id:
+        raise ApiError("Player not found on your roster", 404)
+    if payload.position is not None:
+        player.position = payload.position
+    if payload.year is not None:
+        player.year = payload.year
+    db.commit()
+    db.refresh(player)
+    out = schemas.RosterPlayerOut(
+        id=player.player_id, name=full_name(player.first_name, player.last_name, player.middle_name),
+        year=player.year, position=player.position,
+        attendance_pct=attendance_pct(db, player.player_id), last_eval=last_eval_date(db, player.player_id),
+    )
+    return json_response(out.model_dump())
+
+
 # ---- training activities (sessions) ----
 
 

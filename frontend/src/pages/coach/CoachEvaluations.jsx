@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
@@ -15,17 +16,29 @@ const EMPTY_FORM = { player_id: "", skill: 3, effort: 3, teamwork: 3, attitude: 
 export default function CoachEvaluations() {
   const { data: evaluations, loading, error, reload } = useFetch("/coach/evaluations");
   const { data: roster } = useFetch("/coach/roster");
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [show, setShow] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  function openModal() {
-    setForm({ ...EMPTY_FORM, player_id: roster?.[0]?.id ?? "" });
+  function openModal(playerId) {
+    setForm({ ...EMPTY_FORM, player_id: playerId ?? roster?.[0]?.id ?? "" });
     setFormError("");
     setShow(true);
   }
+
+  // Arriving from Roster's "Evaluate" shortcut with a player pre-picked.
+  useEffect(() => {
+    const requestedPlayerId = location.state?.playerId;
+    if (requestedPlayerId && roster?.length) {
+      openModal(requestedPlayerId);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state, roster]);
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -62,7 +75,7 @@ export default function CoachEvaluations() {
         title="Evaluations"
         subtitle="Player performance evaluations."
         actions={
-          <Button size="sm" onClick={openModal} disabled={!roster?.length}>
+          <Button size="sm" onClick={() => openModal()} disabled={!roster?.length}>
             New evaluation
           </Button>
         }

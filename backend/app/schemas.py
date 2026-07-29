@@ -253,6 +253,11 @@ class RosterPlayerOut(BaseModel):
     last_eval: str
 
 
+class RosterPlayerUpdate(BaseModel):
+    position: str | None = None
+    year: str | None = None
+
+
 class CoachDashboardOut(BaseModel):
     player_count: int
     todays_sessions: int

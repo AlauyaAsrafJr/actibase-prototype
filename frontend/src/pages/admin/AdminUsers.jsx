@@ -4,12 +4,14 @@ import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Badge from "react-bootstrap/Badge";
 import Alert from "react-bootstrap/Alert";
+import Dropdown from "react-bootstrap/Dropdown";
 import { useFetch } from "../../hooks/useFetch";
 import { api } from "../../api/client";
 import { Loading, ErrorAlert } from "../../components/Feedback";
 import PageHeader from "../../components/PageHeader";
 import DataTable from "../../components/DataTable";
 import ConfirmModal from "../../components/ConfirmModal";
+import RowActionsMenu from "../../components/RowActionsMenu";
 
 const STATUS_VARIANT = { Active: "success", Inactive: "secondary", Archived: "dark" };
 
@@ -157,38 +159,28 @@ export default function AdminUsers() {
       key: "actions",
       label: "",
       render: (r) => (
-        <div className="d-flex gap-2 justify-content-end flex-wrap">
-          <Button size="sm" variant="outline-secondary" onClick={() => openEdit(r)}>
-            Edit
-          </Button>
-          <Button
-            size="sm"
-            variant="outline-secondary"
-            onClick={() => setConfirmTarget({ id: r.id, action: "reset", name: r.name })}
-          >
-            Reset password
-          </Button>
-          <Button
-            size="sm"
-            variant="outline-secondary"
-            onClick={() => setConfirmTarget({ id: r.id, action: "deactivate", name: r.name, status: r.status })}
-          >
-            {r.status === "Inactive" ? "Activate" : "Deactivate"}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline-secondary"
-            onClick={() => setConfirmTarget({ id: r.id, action: "archive", name: r.name })}
-          >
-            Archive
-          </Button>
-          <Button
-            size="sm"
-            variant="outline-danger"
-            onClick={() => setConfirmTarget({ id: r.id, action: "delete", name: r.name })}
-          >
-            Delete
-          </Button>
+        <div className="text-end">
+          <RowActionsMenu label={`Actions for ${r.name}`}>
+            <Dropdown.Item onClick={() => openEdit(r)}>Edit</Dropdown.Item>
+            <Dropdown.Item onClick={() => setConfirmTarget({ id: r.id, action: "reset", name: r.name })}>
+              Reset password
+            </Dropdown.Item>
+            <Dropdown.Item
+              onClick={() => setConfirmTarget({ id: r.id, action: "deactivate", name: r.name, status: r.status })}
+            >
+              {r.status === "Inactive" ? "Activate" : "Deactivate"}
+            </Dropdown.Item>
+            <Dropdown.Item onClick={() => setConfirmTarget({ id: r.id, action: "archive", name: r.name })}>
+              Archive
+            </Dropdown.Item>
+            <Dropdown.Divider />
+            <Dropdown.Item
+              className="text-danger"
+              onClick={() => setConfirmTarget({ id: r.id, action: "delete", name: r.name })}
+            >
+              Delete
+            </Dropdown.Item>
+          </RowActionsMenu>
         </div>
       ),
     },

@@ -3,6 +3,7 @@ import Button from "react-bootstrap/Button";
 import Badge from "react-bootstrap/Badge";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
+import Dropdown from "react-bootstrap/Dropdown";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import { useFetch } from "../../hooks/useFetch";
 import { api } from "../../api/client";
@@ -10,6 +11,7 @@ import { Loading, ErrorAlert } from "../../components/Feedback";
 import PageHeader from "../../components/PageHeader";
 import DataTable from "../../components/DataTable";
 import ConfirmModal from "../../components/ConfirmModal";
+import RowActionsMenu from "../../components/RowActionsMenu";
 
 const STATUS_VARIANT = { Active: "success", Inactive: "secondary", Archived: "dark" };
 const EMPTY_FORM = { name: "", email: "", coach_id: "", position: "", year: "" };
@@ -199,24 +201,20 @@ export default function AdminPlayers() {
       key: "actions",
       label: "",
       render: (r) => (
-        <div className="d-flex gap-2 justify-content-end flex-wrap">
-          <Button size="sm" variant="outline-secondary" onClick={() => openEdit(r)}>
-            Edit
-          </Button>
-          <Button
-            size="sm"
-            variant="outline-secondary"
-            onClick={() => setConfirmTarget({ id: r.id, action: "archive", name: r.name })}
-          >
-            Archive
-          </Button>
-          <Button
-            size="sm"
-            variant="outline-danger"
-            onClick={() => setConfirmTarget({ id: r.id, action: "delete", name: r.name })}
-          >
-            Delete
-          </Button>
+        <div className="text-end">
+          <RowActionsMenu label={`Actions for ${r.name}`}>
+            <Dropdown.Item onClick={() => openEdit(r)}>Edit</Dropdown.Item>
+            <Dropdown.Item onClick={() => setConfirmTarget({ id: r.id, action: "archive", name: r.name })}>
+              Archive
+            </Dropdown.Item>
+            <Dropdown.Divider />
+            <Dropdown.Item
+              className="text-danger"
+              onClick={() => setConfirmTarget({ id: r.id, action: "delete", name: r.name })}
+            >
+              Delete
+            </Dropdown.Item>
+          </RowActionsMenu>
         </div>
       ),
     },

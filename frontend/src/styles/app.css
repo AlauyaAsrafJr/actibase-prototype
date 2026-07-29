@@ -190,6 +190,28 @@ a,
   background: var(--msu-cream);
 }
 
+/* ---------- row actions menu ---------- */
+
+.ab-row-actions-toggle {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #eee6da;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #57534e;
+}
+
+.ab-row-actions-toggle:hover {
+  background: var(--msu-cream);
+}
+
+.ab-row-actions-toggle::after {
+  display: none;
+}
+
 .ab-bell-badge {
   position: absolute;
   top: 2px;

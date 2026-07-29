@@ -123,6 +123,42 @@ def create_session():
     return json_response(_activity_out(db, activity, _roster(db, coach)).model_dump(), 201)
 
 
+@coach_bp.patch("/sessions/<int:session_id>")
+def update_session(session_id: int):
+    payload = parse_body(schemas.SessionUpdate)
+    db = get_db()
+    coach = _current_coach(db)
+    activity = db.get(models.TrainingActivity, session_id)
+    if activity is None or activity.coach_id != coach.coach_id:
+        raise ApiError("Session not found", 404)
+    if payload.date is not None:
+        if not payload.date.strip():
+            raise ApiError("date is required", 400)
+        activity.activity_date = payload.date
+    if payload.time is not None:
+        activity.time = payload.time
+    if payload.type is not None:
+        activity.activity_name = payload.type
+    if payload.location is not None:
+        activity.location = payload.location
+    db.commit()
+    db.refresh(activity)
+    return json_response(_activity_out(db, activity, _roster(db, coach)).model_dump())
+
+
+@coach_bp.delete("/sessions/<int:session_id>")
+def delete_session(session_id: int):
+    db = get_db()
+    coach = _current_coach(db)
+    activity = db.get(models.TrainingActivity, session_id)
+    if activity is None or activity.coach_id != coach.coach_id:
+        raise ApiError("Session not found", 404)
+    db.query(models.Participation).filter(models.Participation.activity_id == activity.activity_id).delete()
+    db.delete(activity)
+    db.commit()
+    return "", 204
+
+
 # ---- attendance ----
 
 

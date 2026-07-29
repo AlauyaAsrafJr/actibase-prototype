@@ -197,6 +197,13 @@ class SessionCreate(BaseModel):
     location: str = "Main Gym"
 
 
+class SessionUpdate(BaseModel):
+    date: str | None = None
+    time: str | None = None
+    type: str | None = None
+    location: str | None = None
+
+
 class SessionOut(BaseModel):
     id: int
     date: str

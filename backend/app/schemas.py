@@ -114,6 +114,7 @@ class PlayerOut(BaseModel):
 class ReportCreate(BaseModel):
     name: str
     sport: str | None = None
+    range: str = "All time"  # one of utils.REPORT_RANGES
 
 
 class ReportOut(BaseModel):

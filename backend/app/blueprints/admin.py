@@ -7,7 +7,7 @@ from ..errors import ApiError
 from ..http import json_response, parse_body
 from ..security import hash_password
 from ..serializers import full_name, player_out, user_out
-from ..utils import attendance_pct, report_summary
+from ..utils import REPORT_RANGES, attendance_pct, report_summary
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 admin_bp.before_request(require_role("admin"))
@@ -406,6 +406,8 @@ def list_reports():
 @admin_bp.post("/reports")
 def generate_report():
     payload = parse_body(schemas.ReportCreate)
+    if payload.range not in REPORT_RANGES:
+        raise ApiError(f"range must be one of: {', '.join(REPORT_RANGES)}", 400)
     db = get_db()
     sport = payload.sport or "All sports"
     report = models.ReportAnalytics(
@@ -414,9 +416,9 @@ def generate_report():
         generated_date="Just now",
         title=payload.name or "Untitled report",
         sport=sport,
-        range="Custom",
+        range=payload.range,
         status="Ready",
-        details=report_summary(db, sport),
+        details=report_summary(db, sport, payload.range),
     )
     db.add(report)
     db.commit()

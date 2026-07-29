@@ -9,12 +9,15 @@ import { Loading, ErrorAlert } from "../../components/Feedback";
 import PageHeader from "../../components/PageHeader";
 import DataTable from "../../components/DataTable";
 
+const REPORT_RANGES = ["Last 7 days", "Last 30 days", "All time"];
+
 export default function AdminReports() {
   const { data: reports, loading, error, reload } = useFetch("/admin/reports");
   const [sport, setSport] = useState("all");
   const [show, setShow] = useState(false);
   const [name, setName] = useState("");
   const [newSport, setNewSport] = useState("");
+  const [range, setRange] = useState(REPORT_RANGES[2]);
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [viewing, setViewing] = useState(null);
@@ -34,7 +37,7 @@ export default function AdminReports() {
     setFormError("");
     setSubmitting(true);
     try {
-      await api.post("/admin/reports", { name: name.trim() || undefined, sport: newSport.trim() || undefined });
+      await api.post("/admin/reports", { name: name.trim() || undefined, sport: newSport.trim() || undefined, range });
       setShow(false);
       setName("");
       setNewSport("");
@@ -102,9 +105,20 @@ export default function AdminReports() {
               <Form.Label>Report name</Form.Label>
               <Form.Control value={name} onChange={(e) => setName(e.target.value)} placeholder="Weekly Attendance Summary" />
             </Form.Group>
-            <Form.Group>
+            <Form.Group className="mb-3">
               <Form.Label>Sport</Form.Label>
               <Form.Control value={newSport} onChange={(e) => setNewSport(e.target.value)} placeholder="All sports" />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Range</Form.Label>
+              <Form.Select value={range} onChange={(e) => setRange(e.target.value)}>
+                {REPORT_RANGES.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </Form.Select>
+              <div className="text-muted small mt-1">Attendance, evaluations, and sessions are computed only within this range.</div>
             </Form.Group>
           </Modal.Body>
           <Modal.Footer>

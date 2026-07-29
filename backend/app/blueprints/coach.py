@@ -7,7 +7,7 @@ from ..database import get_db
 from ..errors import ApiError
 from ..http import json_response, parse_body
 from ..serializers import full_name, user_out
-from ..utils import attendance_pct, last_eval_date, report_summary
+from ..utils import REPORT_RANGES, attendance_pct, last_eval_date, report_summary
 
 coach_bp = Blueprint("coach", __name__, url_prefix="/coach")
 coach_bp.before_request(require_role("coach"))
@@ -374,12 +374,14 @@ def list_reports():
 @coach_bp.post("/reports")
 def generate_report():
     payload = parse_body(schemas.ReportCreate)
+    if payload.range not in REPORT_RANGES:
+        raise ApiError(f"range must be one of: {', '.join(REPORT_RANGES)}", 400)
     db = get_db()
     coach = _current_coach(db)
     report = models.ReportAnalytics(
         report_type="Training", generated_by=g.current_user.user_id, generated_date="Just now",
-        title=payload.name or "Untitled report", sport=coach.specialization, range="Custom", status="Ready",
-        details=report_summary(db, coach.specialization),
+        title=payload.name or "Untitled report", sport=coach.specialization, range=payload.range, status="Ready",
+        details=report_summary(db, coach.specialization, payload.range),
     )
     db.add(report)
     db.commit()

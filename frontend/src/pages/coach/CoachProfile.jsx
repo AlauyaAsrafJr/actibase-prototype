@@ -12,6 +12,7 @@ const FIELDS = ["name", "sport", "email", "phone", "bio", "years_coaching"];
 
 export default function CoachProfile() {
   const { data: profile, loading, error } = useFetch("/coach/profile");
+  const { data: sports } = useFetch("/coach/sports");
   const [form, setForm] = useState(null);
   const [saveError, setSaveError] = useState("");
   const [saved, setSaved] = useState(false);
@@ -63,7 +64,18 @@ export default function CoachProfile() {
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>Sport</Form.Label>
-                <Form.Control value={form.sport || ""} onChange={(e) => setForm({ ...form, sport: e.target.value })} />
+                <Form.Control
+                  list="coach-sport-options"
+                  value={form.sport || ""}
+                  onChange={(e) => setForm({ ...form, sport: e.target.value })}
+                  placeholder="Basketball, or type a new sport…"
+                />
+                <datalist id="coach-sport-options">
+                  {sports?.map((s) => (
+                    <option key={s} value={s} />
+                  ))}
+                </datalist>
+                <div className="text-muted small mt-1">Match an existing sport exactly, or type a new one.</div>
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>Phone</Form.Label>

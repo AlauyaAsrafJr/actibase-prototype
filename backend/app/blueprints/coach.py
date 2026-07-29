@@ -393,6 +393,23 @@ def generate_report():
 # ---- profile ----
 
 
+@coach_bp.get("/sports")
+def list_sports():
+    """Existing sports across the program — backs the Sport datalist on the
+    profile form, so a coach can match an existing sport exactly instead of
+    risking a typo that silently drops them out of sport-scoped filters."""
+    db = get_db()
+    rows = (
+        db.query(models.Coach.specialization)
+        .join(models.SystemUser, models.SystemUser.user_id == models.Coach.user_id)
+        .filter(models.SystemUser.status != "Archived", models.Coach.specialization.isnot(None))
+        .distinct()
+        .all()
+    )
+    sports = sorted({r[0] for r in rows if r[0]})
+    return json_response(sports)
+
+
 @coach_bp.get("/profile")
 def get_profile():
     db = get_db()

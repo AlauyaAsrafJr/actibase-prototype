@@ -8,7 +8,7 @@ import { api } from "../../api/client";
 import { Loading, ErrorAlert } from "../../components/Feedback";
 import PageHeader from "../../components/PageHeader";
 
-const FIELDS = ["name", "sport", "email", "phone", "bio", "position", "year"];
+const FIELDS = ["name", "email", "phone", "bio", "position", "year"];
 
 export default function PlayerProfile() {
   const { data: profile, loading, error } = useFetch("/player/profile");
@@ -63,7 +63,8 @@ export default function PlayerProfile() {
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>Sport</Form.Label>
-                <Form.Control value={form.sport || ""} onChange={(e) => setForm({ ...form, sport: e.target.value })} />
+                <Form.Control value={form.sport || "—"} disabled readOnly />
+                <div className="text-muted small mt-1">Set by your assigned coach — ask your coach or an admin to change this.</div>
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>Position</Form.Label>

@@ -64,7 +64,7 @@ def roster():
     players = _roster(db, coach)
     out = [
         schemas.RosterPlayerOut(
-            id=p.player_id, name=full_name(p.first_name, p.last_name), year=p.year, position=p.position,
+            id=p.player_id, name=full_name(p.first_name, p.last_name, p.middle_name), year=p.year, position=p.position,
             attendance_pct=attendance_pct(db, p.player_id), last_eval=last_eval_date(db, p.player_id),
         )
         for p in players
@@ -139,7 +139,7 @@ def get_attendance(session_id: int):
         for m in db.query(models.Attendance).filter(models.Attendance.coach_id == coach.coach_id, models.Attendance.date == activity.activity_date).all()
     }
     return json_response([
-        {"player_id": p.player_id, "name": full_name(p.first_name, p.last_name), "position": p.position, "status": marks.get(p.player_id, "present")}
+        {"player_id": p.player_id, "name": full_name(p.first_name, p.last_name, p.middle_name), "position": p.position, "status": marks.get(p.player_id, "present")}
         for p in players
     ])
 
@@ -225,7 +225,7 @@ def list_evaluations():
     for f in feedback_rows:
         player = db.get(models.Player, f.player_id)
         out.append(schemas.EvaluationOut(
-            id=f.feedback_id, player_id=f.player_id, player_name=full_name(player.first_name, player.last_name) if player else "Unknown",
+            id=f.feedback_id, player_id=f.player_id, player_name=full_name(player.first_name, player.last_name, player.middle_name) if player else "Unknown",
             date=f.feedback_date, skill=f.skill, effort=f.effort, teamwork=f.teamwork, attitude=f.attitude, comment=f.comments,
         ).model_dump())
     return json_response(out)
@@ -249,7 +249,7 @@ def create_evaluation():
     db.commit()
     db.refresh(feedback)
     out = schemas.EvaluationOut(
-        id=feedback.feedback_id, player_id=feedback.player_id, player_name=full_name(player.first_name, player.last_name),
+        id=feedback.feedback_id, player_id=feedback.player_id, player_name=full_name(player.first_name, player.last_name, player.middle_name),
         date=feedback.feedback_date, skill=feedback.skill, effort=feedback.effort,
         teamwork=feedback.teamwork, attitude=feedback.attitude, comment=feedback.comments,
     )

@@ -14,7 +14,7 @@ import ConfirmModal from "../../components/ConfirmModal";
 import RowActionsMenu from "../../components/RowActionsMenu";
 
 const STATUS_VARIANT = { Active: "success", Inactive: "secondary", Archived: "dark" };
-const EMPTY_FORM = { name: "", email: "", coach_id: "", position: "", year: "" };
+const EMPTY_FORM = { lastName: "", firstName: "", middleName: "", email: "", coach_id: "", position: "", year: "" };
 
 export default function AdminPlayers() {
   const { data: players, loading, error, reload } = useFetch("/admin/players");
@@ -94,7 +94,9 @@ export default function AdminPlayers() {
 
   function payloadFrom(form) {
     return {
-      name: form.name.trim(),
+      first_name: form.firstName.trim(),
+      middle_name: form.middleName.trim(),
+      last_name: form.lastName.trim(),
       email: form.email.trim(),
       coach_id: form.coach_id ? Number(form.coach_id) : null,
       position: form.position.trim() || null,
@@ -104,8 +106,8 @@ export default function AdminPlayers() {
 
   async function handleCreate(e) {
     e.preventDefault();
-    if (!createForm.name.trim() || !createForm.email.trim()) {
-      setCreateError("Name and email are required.");
+    if (!createForm.firstName.trim() || !createForm.lastName.trim() || !createForm.email.trim()) {
+      setCreateError("First name, last name, and email are required.");
       return;
     }
     setCreateError("");
@@ -125,7 +127,9 @@ export default function AdminPlayers() {
   function openEdit(r) {
     setEditing(r);
     setEditForm({
-      name: r.name,
+      lastName: r.last_name,
+      firstName: r.first_name,
+      middleName: r.middle_name || "",
       email: r.email,
       coach_id: r.coach_id != null ? String(r.coach_id) : "",
       position: r.position || "",
@@ -136,8 +140,8 @@ export default function AdminPlayers() {
 
   async function handleEditSave(e) {
     e.preventDefault();
-    if (!editForm.name.trim() || !editForm.email.trim()) {
-      setEditError("Name and email are required.");
+    if (!editForm.firstName.trim() || !editForm.lastName.trim() || !editForm.email.trim()) {
+      setEditError("First name, last name, and email are required.");
       return;
     }
     setEditError("");
@@ -220,6 +224,25 @@ export default function AdminPlayers() {
     },
   ];
 
+  function NameFields({ form, setForm }) {
+    return (
+      <>
+        <Form.Group className="mb-3">
+          <Form.Label>Last name</Form.Label>
+          <Form.Control value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
+        </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>First name</Form.Label>
+          <Form.Control value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
+        </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Middle name</Form.Label>
+          <Form.Control value={form.middleName} onChange={(e) => setForm({ ...form, middleName: e.target.value })} placeholder="Optional" />
+        </Form.Group>
+      </>
+    );
+  }
+
   function CoachAndPositionFields({ form, setForm }) {
     return (
       <>
@@ -289,10 +312,7 @@ export default function AdminPlayers() {
         <Form onSubmit={handleCreate}>
           <Modal.Body>
             <ErrorAlert message={createError} />
-            <Form.Group className="mb-3">
-              <Form.Label>Name</Form.Label>
-              <Form.Control value={createForm.name} onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })} />
-            </Form.Group>
+            <NameFields form={createForm} setForm={setCreateForm} />
             <Form.Group className="mb-3">
               <Form.Label>Email</Form.Label>
               <Form.Control
@@ -322,10 +342,7 @@ export default function AdminPlayers() {
         <Form onSubmit={handleEditSave}>
           <Modal.Body>
             <ErrorAlert message={editError} />
-            <Form.Group className="mb-3">
-              <Form.Label>Name</Form.Label>
-              <Form.Control value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
-            </Form.Group>
+            <NameFields form={editForm} setForm={setEditForm} />
             <Form.Group className="mb-3">
               <Form.Label>Email</Form.Label>
               <Form.Control

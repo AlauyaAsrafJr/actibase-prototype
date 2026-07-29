@@ -7,7 +7,9 @@ from . import models, schemas
 from .utils import attendance_pct, last_eval_date
 
 
-def full_name(first: str, last: str) -> str:
+def full_name(first: str, last: str, middle: str | None = None) -> str:
+    if middle:
+        return f"{first} {middle} {last}".strip()
     return f"{first} {last}".strip()
 
 
@@ -24,7 +26,7 @@ def user_out(su: models.SystemUser, profile) -> schemas.UserOut:
     if isinstance(profile, models.Player):
         return schemas.UserOut(
             **common,
-            name=full_name(profile.first_name, profile.last_name),
+            name=full_name(profile.first_name, profile.last_name, profile.middle_name),
             sport=profile.coach.specialization if profile.coach else None,
             position=profile.position,
             year=profile.year,
@@ -53,7 +55,10 @@ def player_out(db, su: models.SystemUser, player: models.Player) -> schemas.Play
     return schemas.PlayerOut(
         id=player.player_id,
         user_id=su.user_id,
-        name=full_name(player.first_name, player.last_name),
+        name=full_name(player.first_name, player.last_name, player.middle_name),
+        first_name=player.first_name,
+        middle_name=player.middle_name,
+        last_name=player.last_name,
         email=player.email,
         status=su.status,
         last_active=su.last_login or "Never",

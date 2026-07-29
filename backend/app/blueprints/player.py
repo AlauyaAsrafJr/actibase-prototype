@@ -161,7 +161,7 @@ def stats():
         avg_evaluation=avg_eval,
         team_rank=rank,
         team_size=len(ranked),
-        teammates=[schemas.TeammateOut(name=full_name(t.first_name, t.last_name), attendance_pct=pct) for t, pct in ranked],
+        teammates=[schemas.TeammateOut(name=full_name(t.first_name, t.last_name, t.middle_name), attendance_pct=pct) for t, pct in ranked],
     )
     return json_response(out)
 

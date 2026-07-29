@@ -53,6 +53,7 @@ class Player(Base):
 
     # Additive — not in the ERD, kept so the existing roster/profile UI
     # (position, class year, coach linkage, bio) keeps working.
+    middle_name: Mapped[str | None] = mapped_column(String(80), nullable=True)
     position: Mapped[str | None] = mapped_column(String(60), nullable=True)
     year: Mapped[str | None] = mapped_column(String(30), nullable=True)
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)

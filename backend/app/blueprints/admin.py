@@ -107,7 +107,7 @@ def _archive_system_user(db, su: models.SystemUser, profile, archived_by_id: int
     db.add(models.ArchivedRecord(
         record_type=record_type,
         record_id=record_id,
-        archive_data=full_name(profile.first_name, profile.last_name),
+        archive_data=full_name(profile.first_name, profile.last_name, getattr(profile, "middle_name", None)),
         archived_at="Just now",
         archived_by=archived_by_id,
     ))
@@ -249,9 +249,9 @@ def create_player():
     su = models.SystemUser(username=payload.email, password=hash_password("changeme"), role="player", status="Active")
     db.add(su)
     db.flush()
-    first, last = payload.name.strip().split(" ", 1) if " " in payload.name.strip() else (payload.name.strip(), "")
     player = models.Player(
-        user_id=su.user_id, first_name=first, last_name=last, email=payload.email,
+        user_id=su.user_id, first_name=payload.first_name.strip(), middle_name=(payload.middle_name or "").strip() or None,
+        last_name=payload.last_name.strip(), email=payload.email,
         coach_id=payload.coach_id, position=payload.position, year=payload.year,
     )
     db.add(player)
@@ -277,9 +277,12 @@ def update_player(player_id: int):
     if "coach_id" in fields_set and payload.coach_id is not None and db.get(models.Coach, payload.coach_id) is None:
         raise ApiError("Coach not found", 404)
 
-    if payload.name is not None:
-        first, last = (payload.name.strip().split(" ", 1) + [""])[:2]
-        player.first_name, player.last_name = first, last
+    if payload.first_name is not None:
+        player.first_name = payload.first_name.strip()
+    if "middle_name" in fields_set:
+        player.middle_name = (payload.middle_name or "").strip() or None
+    if payload.last_name is not None:
+        player.last_name = payload.last_name.strip()
     if payload.email is not None:
         player.email = payload.email
         su.username = payload.email
@@ -491,7 +494,7 @@ def list_login_history():
     for entry in rows:
         su = db.get(models.SystemUser, entry.user_id)
         profile = _profile_for(db, su) if su else None
-        name = full_name(profile.first_name, profile.last_name) if profile else "Unknown"
+        name = full_name(profile.first_name, profile.last_name, getattr(profile, "middle_name", None)) if profile else "Unknown"
         out.append(schemas.LoginHistoryOut(
             id=entry.log_id, user_name=name, role=su.role if su else "unknown",
             login_time=entry.login_time.isoformat(), logout_time=entry.logout_time.isoformat() if entry.logout_time else None,

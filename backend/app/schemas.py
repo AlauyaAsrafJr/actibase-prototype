@@ -60,7 +60,9 @@ class AdminUserUpdate(BaseModel):
 
 
 class AdminPlayerCreate(BaseModel):
-    name: str
+    first_name: str
+    middle_name: str | None = None
+    last_name: str
     email: EmailStr
     coach_id: int | None = None
     position: str | None = None
@@ -68,7 +70,9 @@ class AdminPlayerCreate(BaseModel):
 
 
 class AdminPlayerUpdate(BaseModel):
-    name: str | None = None
+    first_name: str | None = None
+    middle_name: str | None = None
+    last_name: str | None = None
     email: EmailStr | None = None
     coach_id: int | None = None
     position: str | None = None
@@ -89,6 +93,9 @@ class PlayerOut(BaseModel):
     id: int
     user_id: int
     name: str
+    first_name: str
+    middle_name: str | None = None
+    last_name: str
     email: str
     role: str = "player"
     status: str

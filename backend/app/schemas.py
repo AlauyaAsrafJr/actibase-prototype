@@ -241,7 +241,16 @@ class EvaluationOut(BaseModel):
     effort: int
     teamwork: int
     attitude: int
+    overall: int
     comment: str
+
+
+class EvaluationUpdate(BaseModel):
+    skill: int | None = Field(default=None, ge=1, le=5)
+    effort: int | None = Field(default=None, ge=1, le=5)
+    teamwork: int | None = Field(default=None, ge=1, le=5)
+    attitude: int | None = Field(default=None, ge=1, le=5)
+    comment: str | None = None
 
 
 class RosterPlayerOut(BaseModel):

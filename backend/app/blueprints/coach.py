@@ -284,7 +284,7 @@ def list_evaluations():
         player = db.get(models.Player, f.player_id)
         out.append(schemas.EvaluationOut(
             id=f.feedback_id, player_id=f.player_id, player_name=full_name(player.first_name, player.last_name, player.middle_name) if player else "Unknown",
-            date=f.feedback_date, skill=f.skill, effort=f.effort, teamwork=f.teamwork, attitude=f.attitude, comment=f.comments,
+            date=f.feedback_date, skill=f.skill, effort=f.effort, teamwork=f.teamwork, attitude=f.attitude, overall=f.rating, comment=f.comments,
         ).model_dump())
     return json_response(out)
 
@@ -309,9 +309,52 @@ def create_evaluation():
     out = schemas.EvaluationOut(
         id=feedback.feedback_id, player_id=feedback.player_id, player_name=full_name(player.first_name, player.last_name, player.middle_name),
         date=feedback.feedback_date, skill=feedback.skill, effort=feedback.effort,
-        teamwork=feedback.teamwork, attitude=feedback.attitude, comment=feedback.comments,
+        teamwork=feedback.teamwork, attitude=feedback.attitude, overall=feedback.rating, comment=feedback.comments,
     )
     return json_response(out.model_dump(), 201)
+
+
+@coach_bp.patch("/evaluations/<int:evaluation_id>")
+def update_evaluation(evaluation_id: int):
+    payload = parse_body(schemas.EvaluationUpdate)
+    db = get_db()
+    coach = _current_coach(db)
+    feedback = db.get(models.PerformanceFeedback, evaluation_id)
+    if feedback is None or feedback.coach_id != coach.coach_id:
+        raise ApiError("Evaluation not found", 404)
+    if payload.skill is not None:
+        feedback.skill = payload.skill
+    if payload.effort is not None:
+        feedback.effort = payload.effort
+    if payload.teamwork is not None:
+        feedback.teamwork = payload.teamwork
+    if payload.attitude is not None:
+        feedback.attitude = payload.attitude
+    if payload.comment is not None:
+        feedback.comments = payload.comment
+    feedback.rating = round((feedback.skill + feedback.effort + feedback.teamwork + feedback.attitude) / 4)
+    db.commit()
+    db.refresh(feedback)
+    player = db.get(models.Player, feedback.player_id)
+    out = schemas.EvaluationOut(
+        id=feedback.feedback_id, player_id=feedback.player_id,
+        player_name=full_name(player.first_name, player.last_name, player.middle_name) if player else "Unknown",
+        date=feedback.feedback_date, skill=feedback.skill, effort=feedback.effort,
+        teamwork=feedback.teamwork, attitude=feedback.attitude, overall=feedback.rating, comment=feedback.comments,
+    )
+    return json_response(out.model_dump())
+
+
+@coach_bp.delete("/evaluations/<int:evaluation_id>")
+def delete_evaluation(evaluation_id: int):
+    db = get_db()
+    coach = _current_coach(db)
+    feedback = db.get(models.PerformanceFeedback, evaluation_id)
+    if feedback is None or feedback.coach_id != coach.coach_id:
+        raise ApiError("Evaluation not found", 404)
+    db.delete(feedback)
+    db.commit()
+    return "", 204
 
 
 # ---- reports ----

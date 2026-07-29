@@ -3,15 +3,36 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
+import Badge from "react-bootstrap/Badge";
+import Dropdown from "react-bootstrap/Dropdown";
 import { useFetch } from "../../hooks/useFetch";
 import { api } from "../../api/client";
 import { Loading, ErrorAlert } from "../../components/Feedback";
 import PageHeader from "../../components/PageHeader";
 import DataTable from "../../components/DataTable";
+import ConfirmModal from "../../components/ConfirmModal";
+import RowActionsMenu from "../../components/RowActionsMenu";
 
 const RATING_FIELDS = ["skill", "effort", "teamwork", "attitude"];
 
 const EMPTY_FORM = { player_id: "", skill: 3, effort: 3, teamwork: 3, attitude: 3, comment: "" };
+
+function RatingSliders({ form, setForm }) {
+  return RATING_FIELDS.map((field) => (
+    <Form.Group className="mb-3" key={field}>
+      <Form.Label className="text-capitalize d-flex justify-content-between">
+        <span>{field}</span>
+        <span className="text-muted">{form[field]}/5</span>
+      </Form.Label>
+      <Form.Range
+        min={1}
+        max={5}
+        value={form[field]}
+        onChange={(e) => setForm({ ...form, [field]: Number(e.target.value) })}
+      />
+    </Form.Group>
+  ));
+}
 
 export default function CoachEvaluations() {
   const { data: evaluations, loading, error, reload } = useFetch("/coach/evaluations");
@@ -23,6 +44,14 @@ export default function CoachEvaluations() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const [editing, setEditing] = useState(null); // evaluation row | null
+  const [editForm, setEditForm] = useState(EMPTY_FORM);
+  const [editError, setEditError] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   function openModal(playerId) {
     setForm({ ...EMPTY_FORM, player_id: playerId ?? roster?.[0]?.id ?? "" });
@@ -59,6 +88,44 @@ export default function CoachEvaluations() {
     }
   }
 
+  function openEdit(r) {
+    setEditing(r);
+    setEditForm({ ...r });
+    setEditError("");
+  }
+
+  async function handleEditSave(e) {
+    e.preventDefault();
+    setEditError("");
+    setSavingEdit(true);
+    try {
+      await api.patch(`/coach/evaluations/${editing.id}`, {
+        skill: editForm.skill,
+        effort: editForm.effort,
+        teamwork: editForm.teamwork,
+        attitude: editForm.attitude,
+        comment: editForm.comment,
+      });
+      setEditing(null);
+      reload();
+    } catch (err) {
+      setEditError(err.message);
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      await api.delete(`/coach/evaluations/${deleteTarget.id}`);
+      setDeleteTarget(null);
+      reload();
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   const columns = [
     { key: "player_name", label: "Player" },
     { key: "date", label: "Date" },
@@ -66,7 +133,25 @@ export default function CoachEvaluations() {
     { key: "effort", label: "Effort" },
     { key: "teamwork", label: "Teamwork" },
     { key: "attitude", label: "Attitude" },
+    {
+      key: "overall",
+      label: "Overall",
+      render: (r) => <Badge bg={r.overall >= 4 ? "success" : r.overall >= 3 ? "warning" : "danger"}>{r.overall}/5</Badge>,
+    },
     { key: "comment", label: "Comment", render: (r) => r.comment || "—" },
+    {
+      key: "actions",
+      label: "",
+      render: (r) => (
+        <RowActionsMenu label={`Actions for ${r.player_name}'s evaluation on ${r.date}`}>
+          <Dropdown.Item onClick={() => openEdit(r)}>Edit</Dropdown.Item>
+          <Dropdown.Divider />
+          <Dropdown.Item className="text-danger" onClick={() => setDeleteTarget(r)}>
+            Delete
+          </Dropdown.Item>
+        </RowActionsMenu>
+      ),
+    },
   ];
 
   return (
@@ -101,20 +186,7 @@ export default function CoachEvaluations() {
               </Form.Select>
             </Form.Group>
 
-            {RATING_FIELDS.map((field) => (
-              <Form.Group className="mb-3" key={field}>
-                <Form.Label className="text-capitalize d-flex justify-content-between">
-                  <span>{field}</span>
-                  <span className="text-muted">{form[field]}/5</span>
-                </Form.Label>
-                <Form.Range
-                  min={1}
-                  max={5}
-                  value={form[field]}
-                  onChange={(e) => setForm({ ...form, [field]: Number(e.target.value) })}
-                />
-              </Form.Group>
-            ))}
+            <RatingSliders form={form} setForm={setForm} />
 
             <Form.Group>
               <Form.Label>Comment</Form.Label>
@@ -136,6 +208,46 @@ export default function CoachEvaluations() {
           </Modal.Footer>
         </Form>
       </Modal>
+
+      <Modal show={!!editing} onHide={() => setEditing(null)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title className="h6">Edit evaluation — {editing?.player_name}</Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleEditSave}>
+          <Modal.Body>
+            <ErrorAlert message={editError} />
+            <RatingSliders form={editForm} setForm={setEditForm} />
+            <Form.Group>
+              <Form.Label>Comment</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={editForm.comment}
+                onChange={(e) => setEditForm({ ...editForm, comment: e.target.value })}
+              />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="outline-secondary" onClick={() => setEditing(null)} disabled={savingEdit}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={savingEdit}>
+              {savingEdit ? "Saving…" : "Save changes"}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+
+      <ConfirmModal
+        show={!!deleteTarget}
+        title="Delete evaluation"
+        body={`Permanently delete this evaluation for ${deleteTarget?.player_name} (${deleteTarget?.date})? This can't be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+        busy={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

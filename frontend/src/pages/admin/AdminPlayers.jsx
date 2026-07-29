@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Badge from "react-bootstrap/Badge";
 import Modal from "react-bootstrap/Modal";
@@ -40,6 +40,55 @@ export default function AdminPlayers() {
     if (!players) return [];
     return sport === "all" ? players : players.filter((p) => p.sport === sport);
   }, [players, sport]);
+
+  const [selected, setSelected] = useState(() => new Set());
+  const [bulkConfirm, setBulkConfirm] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  useEffect(() => {
+    if (!players) return;
+    setSelected((prev) => {
+      const ids = new Set(players.map((p) => p.id));
+      const next = new Set([...prev].filter((id) => ids.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [players]);
+
+  const allFilteredSelected = filtered.length > 0 && filtered.every((p) => selected.has(p.id));
+
+  function toggleOne(id) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllFiltered() {
+    setSelected((prev) => {
+      if (allFilteredSelected) {
+        const next = new Set(prev);
+        filtered.forEach((p) => next.delete(p.id));
+        return next;
+      }
+      const next = new Set(prev);
+      filtered.forEach((p) => next.add(p.id));
+      return next;
+    });
+  }
+
+  async function handleBulkArchive() {
+    setBulkBusy(true);
+    try {
+      await api.post("/admin/players/archive-bulk", { ids: [...selected] });
+      setSelected(new Set());
+      setBulkConfirm(false);
+      reload();
+    } finally {
+      setBulkBusy(false);
+    }
+  }
 
   function payloadFrom(form) {
     return {
@@ -119,6 +168,11 @@ export default function AdminPlayers() {
   }
 
   const columns = [
+    {
+      key: "select",
+      label: <Form.Check checked={allFilteredSelected} onChange={toggleAllFiltered} aria-label="Select all" />,
+      render: (r) => <Form.Check checked={selected.has(r.id)} onChange={() => toggleOne(r.id)} aria-label={`Select ${r.name}`} />,
+    },
     { key: "name", label: "Name" },
     { key: "sport", label: "Sport" },
     { key: "coach_name", label: "Coach", render: (r) => r.coach_name || "—" },
@@ -217,6 +271,17 @@ export default function AdminPlayers() {
         }
       />
       <ErrorAlert message={error} />
+      {selected.size > 0 && (
+        <div className="d-flex align-items-center gap-2 mb-2 p-2 bg-light border rounded">
+          <span className="small text-muted">{selected.size} selected</span>
+          <Button size="sm" variant="outline-secondary" onClick={() => setBulkConfirm(true)}>
+            Archive selected
+          </Button>
+          <Button size="sm" variant="link" onClick={() => setSelected(new Set())}>
+            Clear
+          </Button>
+        </div>
+      )}
       {loading ? <Loading /> : <DataTable columns={columns} rows={filtered} emptyMessage="No players in this sport yet." />}
 
       <Modal show={showCreate} onHide={() => setShowCreate(false)} centered>
@@ -297,6 +362,17 @@ export default function AdminPlayers() {
         busy={busy}
         onConfirm={handleConfirm}
         onCancel={() => setConfirmTarget(null)}
+      />
+
+      <ConfirmModal
+        show={bulkConfirm}
+        title="Archive selected players"
+        body={`Archive ${selected.size} selected player(s)? They'll be moved to the archive and can be restored later.`}
+        confirmLabel="Archive"
+        variant="secondary"
+        busy={bulkBusy}
+        onConfirm={handleBulkArchive}
+        onCancel={() => setBulkConfirm(false)}
       />
     </div>
   );

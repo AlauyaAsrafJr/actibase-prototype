@@ -22,6 +22,11 @@ def _profile_for(db, su: models.SystemUser):
     return db.query(model).filter(model.user_id == su.user_id).first()
 
 
+def _actor_name(db) -> str:
+    profile = _profile_for(db, g.current_user)
+    return full_name(profile.first_name, profile.last_name) if profile else "Unknown"
+
+
 # ---- dashboard ----
 
 
@@ -161,6 +166,8 @@ def deactivate_user(user_id: int):
     if su.status == "Archived":
         raise ApiError("Restore this account from the archive before deactivating it", 400)
     su.status = "Inactive" if su.status == "Active" else "Active"
+    verb = "Reactivated" if su.status == "Active" else "Deactivated"
+    su.last_admin_action = f"{verb} by {_actor_name(db)} · Just now"
     db.commit()
     db.refresh(su)
     return json_response(user_out(su, _profile_for(db, su)))
@@ -173,6 +180,7 @@ def reset_password(user_id: int):
     if su is None or su.role not in ACCOUNT_ROLES:
         raise ApiError("User not found", 404)
     su.password = hash_password("changeme")
+    su.last_admin_action = f"Password reset by {_actor_name(db)} · Just now"
     db.commit()
     return json_response(schemas.ResetPasswordOut(reset=True, new_password="changeme"))
 

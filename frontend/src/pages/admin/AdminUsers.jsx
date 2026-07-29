@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
@@ -26,6 +26,46 @@ export default function AdminUsers() {
   const [editForm, setEditForm] = useState({ name: "", email: "" });
   const [editError, setEditError] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
+
+  const [selected, setSelected] = useState(() => new Set());
+  const [bulkConfirm, setBulkConfirm] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  useEffect(() => {
+    if (!users) return;
+    setSelected((prev) => {
+      const ids = new Set(users.map((u) => u.id));
+      const next = new Set([...prev].filter((id) => ids.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [users]);
+
+  const allSelected = users?.length > 0 && users.every((u) => selected.has(u.id));
+
+  function toggleOne(id) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setSelected(allSelected ? new Set() : new Set(users.map((u) => u.id)));
+  }
+
+  async function handleBulkArchive() {
+    setBulkBusy(true);
+    try {
+      await api.post("/admin/users/archive-bulk", { ids: [...selected] });
+      setSelected(new Set());
+      setBulkConfirm(false);
+      reload();
+    } finally {
+      setBulkBusy(false);
+    }
+  }
 
   function openEdit(r) {
     setEditing(r);
@@ -94,6 +134,11 @@ export default function AdminUsers() {
   }
 
   const columns = [
+    {
+      key: "select",
+      label: <Form.Check checked={!!allSelected} onChange={toggleAll} aria-label="Select all" />,
+      render: (r) => <Form.Check checked={selected.has(r.id)} onChange={() => toggleOne(r.id)} aria-label={`Select ${r.name}`} />,
+    },
     { key: "name", label: "Name" },
     { key: "email", label: "Email" },
     { key: "role", label: "Role", render: (r) => <span className="text-capitalize">{r.role}</span> },
@@ -103,6 +148,11 @@ export default function AdminUsers() {
       render: (r) => <Badge bg={STATUS_VARIANT[r.status] || "secondary"}>{r.status}</Badge>,
     },
     { key: "last_active", label: "Last active" },
+    {
+      key: "last_admin_action",
+      label: "Last admin action",
+      render: (r) => <span className="text-muted small">{r.last_admin_action || "—"}</span>,
+    },
     {
       key: "actions",
       label: "",
@@ -177,6 +227,17 @@ export default function AdminUsers() {
         </Alert>
       )}
       <ErrorAlert message={error} />
+      {selected.size > 0 && (
+        <div className="d-flex align-items-center gap-2 mb-2 p-2 bg-light border rounded">
+          <span className="small text-muted">{selected.size} selected</span>
+          <Button size="sm" variant="outline-secondary" onClick={() => setBulkConfirm(true)}>
+            Archive selected
+          </Button>
+          <Button size="sm" variant="link" onClick={() => setSelected(new Set())}>
+            Clear
+          </Button>
+        </div>
+      )}
       {loading ? <Loading /> : <DataTable columns={columns} rows={users} emptyMessage="No users yet." />}
 
       <Modal show={showCreate} onHide={() => setShowCreate(false)} centered>
@@ -258,6 +319,17 @@ export default function AdminUsers() {
         busy={busy}
         onConfirm={handleConfirm}
         onCancel={() => setConfirmTarget(null)}
+      />
+
+      <ConfirmModal
+        show={bulkConfirm}
+        title="Archive selected users"
+        body={`Archive ${selected.size} selected user(s)? They'll be moved to the archive and can be restored later.`}
+        confirmLabel="Archive"
+        variant="secondary"
+        busy={bulkBusy}
+        onConfirm={handleBulkArchive}
+        onCancel={() => setBulkConfirm(false)}
       />
     </div>
   );

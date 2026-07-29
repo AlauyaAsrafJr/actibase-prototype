@@ -34,6 +34,7 @@ class UserOut(BaseModel):
     bio: str | None = None
     years_coaching: str | None = None
     coach_id: int | None = None
+    last_admin_action: str | None = None
 
 
 class TokenResponse(BaseModel):

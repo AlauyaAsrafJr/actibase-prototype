@@ -19,6 +19,7 @@ def user_out(su: models.SystemUser, profile) -> schemas.UserOut:
         role=su.role,
         status=su.status,
         last_active=su.last_login or "Never",
+        last_admin_action=su.last_admin_action,
     )
     if isinstance(profile, models.Player):
         return schemas.UserOut(

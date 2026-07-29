@@ -31,6 +31,11 @@ class SystemUser(Base):
     # system user, so account status lives centrally here.
     status: Mapped[str] = mapped_column(String(20), default="Active")  # Active | Inactive | Archived
 
+    # Additive — lightweight accountability for actions (reset password,
+    # deactivate) that don't otherwise produce a row anywhere else, unlike
+    # archiving which is recorded in ArchivedRecord.
+    last_admin_action: Mapped[str | None] = mapped_column(String(200), nullable=True)
+
 
 class Player(Base):
     __tablename__ = "players"

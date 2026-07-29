@@ -51,6 +51,33 @@ class AdminUserCreate(BaseModel):
     role: str = "Coach"  # Admin | Coach
 
 
+class AdminUserUpdate(BaseModel):
+    name: str | None = None
+    email: EmailStr | None = None
+
+
+class AdminPlayerCreate(BaseModel):
+    name: str
+    email: EmailStr
+    coach_id: int | None = None
+    position: str | None = None
+    year: str | None = None
+
+
+class AdminPlayerUpdate(BaseModel):
+    name: str | None = None
+    email: EmailStr | None = None
+    coach_id: int | None = None
+    position: str | None = None
+    year: str | None = None
+
+
+class CoachOption(BaseModel):
+    id: int
+    name: str
+    sport: str | None = None
+
+
 class PlayerOut(BaseModel):
     """id is players.player_id — its own id space, distinct from UserOut.id,
     since player-scoped endpoints (roster, attendance, evaluations) all key

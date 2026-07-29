@@ -105,6 +105,29 @@ def _archive_system_user(db, su: models.SystemUser, profile, archived_by_id: int
     ))
 
 
+@admin_bp.patch("/users/<int:user_id>")
+def update_user(user_id: int):
+    payload = parse_body(schemas.AdminUserUpdate)
+    db = get_db()
+    su = db.get(models.SystemUser, user_id)
+    if su is None or su.role not in ACCOUNT_ROLES:
+        raise ApiError("User not found", 404)
+    profile = _profile_for(db, su)
+    if payload.email is not None and payload.email != su.username:
+        if db.query(models.SystemUser).filter(models.SystemUser.username == payload.email).first():
+            raise ApiError("An account with this email already exists", 409)
+    if payload.name is not None:
+        first, last = (payload.name.strip().split(" ", 1) + [""])[:2]
+        profile.first_name, profile.last_name = first, last
+    if payload.email is not None:
+        profile.email = payload.email
+        su.username = payload.email
+    db.commit()
+    db.refresh(su)
+    db.refresh(profile)
+    return json_response(user_out(su, profile))
+
+
 @admin_bp.post("/users/<int:user_id>/archive")
 def archive_user(user_id: int):
     db = get_db()
@@ -171,6 +194,22 @@ def delete_user(user_id: int):
 # ---- players ----
 
 
+@admin_bp.get("/coaches")
+def list_coaches():
+    """Lightweight coach directory — backs the coach-assignment dropdown on
+    the Players page (New player / Edit player)."""
+    db = get_db()
+    rows = (
+        db.query(models.Coach, models.SystemUser)
+        .join(models.SystemUser, models.SystemUser.user_id == models.Coach.user_id)
+        .filter(models.SystemUser.status != "Archived")
+        .all()
+    )
+    out = [schemas.CoachOption(id=c.coach_id, name=full_name(c.first_name, c.last_name), sport=c.specialization) for c, su in rows]
+    out.sort(key=lambda o: o.name)
+    return json_response([o.model_dump() for o in out])
+
+
 @admin_bp.get("/players")
 def list_players():
     db = get_db()
@@ -183,6 +222,64 @@ def list_players():
     out = [player_out(db, su, p) for p, su in rows]
     out.sort(key=lambda o: o.name)
     return json_response([o.model_dump() for o in out])
+
+
+@admin_bp.post("/players")
+def create_player():
+    payload = parse_body(schemas.AdminPlayerCreate)
+    db = get_db()
+    if db.query(models.SystemUser).filter(models.SystemUser.username == payload.email).first():
+        raise ApiError("An account with this email already exists", 409)
+    if payload.coach_id is not None and db.get(models.Coach, payload.coach_id) is None:
+        raise ApiError("Coach not found", 404)
+
+    su = models.SystemUser(username=payload.email, password=hash_password("changeme"), role="player", status="Active")
+    db.add(su)
+    db.flush()
+    first, last = payload.name.strip().split(" ", 1) if " " in payload.name.strip() else (payload.name.strip(), "")
+    player = models.Player(
+        user_id=su.user_id, first_name=first, last_name=last, email=payload.email,
+        coach_id=payload.coach_id, position=payload.position, year=payload.year,
+    )
+    db.add(player)
+    db.commit()
+    db.refresh(su)
+    db.refresh(player)
+    return json_response(player_out(db, su, player).model_dump(), 201)
+
+
+@admin_bp.patch("/players/<int:player_id>")
+def update_player(player_id: int):
+    payload = parse_body(schemas.AdminPlayerUpdate)
+    db = get_db()
+    player = db.get(models.Player, player_id)
+    if player is None:
+        raise ApiError("Player not found", 404)
+    su = db.get(models.SystemUser, player.user_id)
+
+    fields_set = payload.model_fields_set
+    if payload.email is not None and payload.email != player.email:
+        if db.query(models.SystemUser).filter(models.SystemUser.username == payload.email).first():
+            raise ApiError("An account with this email already exists", 409)
+    if "coach_id" in fields_set and payload.coach_id is not None and db.get(models.Coach, payload.coach_id) is None:
+        raise ApiError("Coach not found", 404)
+
+    if payload.name is not None:
+        first, last = (payload.name.strip().split(" ", 1) + [""])[:2]
+        player.first_name, player.last_name = first, last
+    if payload.email is not None:
+        player.email = payload.email
+        su.username = payload.email
+    if "coach_id" in fields_set:
+        player.coach_id = payload.coach_id
+    if payload.position is not None:
+        player.position = payload.position
+    if payload.year is not None:
+        player.year = payload.year
+
+    db.commit()
+    db.refresh(player)
+    return json_response(player_out(db, su, player).model_dump())
 
 
 @admin_bp.post("/players/<int:player_id>/archive")

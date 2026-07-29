@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Badge from "react-bootstrap/Badge";
+import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import { useFetch } from "../../hooks/useFetch";
@@ -11,12 +12,24 @@ import DataTable from "../../components/DataTable";
 import ConfirmModal from "../../components/ConfirmModal";
 
 const STATUS_VARIANT = { Active: "success", Inactive: "secondary", Archived: "dark" };
+const EMPTY_FORM = { name: "", email: "", coach_id: "", position: "", year: "" };
 
 export default function AdminPlayers() {
   const { data: players, loading, error, reload } = useFetch("/admin/players");
+  const { data: coaches } = useFetch("/admin/coaches");
   const [confirmTarget, setConfirmTarget] = useState(null);
   const [busy, setBusy] = useState(false);
   const [sport, setSport] = useState("all");
+
+  const [showCreate, setShowCreate] = useState(false);
+  const [createForm, setCreateForm] = useState(EMPTY_FORM);
+  const [createError, setCreateError] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  const [editing, setEditing] = useState(null); // player row | null
+  const [editForm, setEditForm] = useState(EMPTY_FORM);
+  const [editError, setEditError] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const sports = useMemo(() => {
     if (!players) return [];
@@ -27,6 +40,67 @@ export default function AdminPlayers() {
     if (!players) return [];
     return sport === "all" ? players : players.filter((p) => p.sport === sport);
   }, [players, sport]);
+
+  function payloadFrom(form) {
+    return {
+      name: form.name.trim(),
+      email: form.email.trim(),
+      coach_id: form.coach_id ? Number(form.coach_id) : null,
+      position: form.position.trim() || null,
+      year: form.year.trim() || null,
+    };
+  }
+
+  async function handleCreate(e) {
+    e.preventDefault();
+    if (!createForm.name.trim() || !createForm.email.trim()) {
+      setCreateError("Name and email are required.");
+      return;
+    }
+    setCreateError("");
+    setCreating(true);
+    try {
+      await api.post("/admin/players", payloadFrom(createForm));
+      setShowCreate(false);
+      setCreateForm(EMPTY_FORM);
+      reload();
+    } catch (err) {
+      setCreateError(err.message);
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  function openEdit(r) {
+    setEditing(r);
+    setEditForm({
+      name: r.name,
+      email: r.email,
+      coach_id: r.coach_id != null ? String(r.coach_id) : "",
+      position: r.position || "",
+      year: r.year || "",
+    });
+    setEditError("");
+  }
+
+  async function handleEditSave(e) {
+    e.preventDefault();
+    if (!editForm.name.trim() || !editForm.email.trim()) {
+      setEditError("Name and email are required.");
+      return;
+    }
+    setEditError("");
+    setSavingEdit(true);
+    try {
+      await api.patch(`/admin/players/${editing.id}`, payloadFrom(editForm));
+      setEditing(null);
+      reload();
+    } catch (err) {
+      setEditError(err.message);
+    } finally {
+      setSavingEdit(false);
+    }
+  }
 
   async function handleConfirm() {
     if (!confirmTarget) return;
@@ -71,7 +145,10 @@ export default function AdminPlayers() {
       key: "actions",
       label: "",
       render: (r) => (
-        <div className="d-flex gap-2 justify-content-end">
+        <div className="d-flex gap-2 justify-content-end flex-wrap">
+          <Button size="sm" variant="outline-secondary" onClick={() => openEdit(r)}>
+            Edit
+          </Button>
           <Button
             size="sm"
             variant="outline-secondary"
@@ -91,24 +168,121 @@ export default function AdminPlayers() {
     },
   ];
 
+  function CoachAndPositionFields({ form, setForm }) {
+    return (
+      <>
+        <Form.Group className="mb-3">
+          <Form.Label>Coach</Form.Label>
+          <Form.Select value={form.coach_id} onChange={(e) => setForm({ ...form, coach_id: e.target.value })}>
+            <option value="">Unassigned</option>
+            {coaches?.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+                {c.sport ? ` — ${c.sport}` : ""}
+              </option>
+            ))}
+          </Form.Select>
+        </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Position</Form.Label>
+          <Form.Control value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} placeholder="Guard" />
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>Year</Form.Label>
+          <Form.Control value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="Sophomore" />
+        </Form.Group>
+      </>
+    );
+  }
+
   return (
     <div>
       <PageHeader
         title="Players"
         subtitle="Every player across every sport, program-wide."
         actions={
-          <Form.Select size="sm" style={{ width: 180 }} value={sport} onChange={(e) => setSport(e.target.value)}>
-            <option value="all">All sports</option>
-            {sports.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </Form.Select>
+          <div className="d-flex gap-2">
+            <Form.Select size="sm" style={{ width: 180 }} value={sport} onChange={(e) => setSport(e.target.value)}>
+              <option value="all">All sports</option>
+              {sports.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </Form.Select>
+            <Button size="sm" onClick={() => setShowCreate(true)}>
+              New player
+            </Button>
+          </div>
         }
       />
       <ErrorAlert message={error} />
       {loading ? <Loading /> : <DataTable columns={columns} rows={filtered} emptyMessage="No players in this sport yet." />}
+
+      <Modal show={showCreate} onHide={() => setShowCreate(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title className="h6">New player</Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleCreate}>
+          <Modal.Body>
+            <ErrorAlert message={createError} />
+            <Form.Group className="mb-3">
+              <Form.Label>Name</Form.Label>
+              <Form.Control value={createForm.name} onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })} />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                value={createForm.email}
+                onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+              />
+            </Form.Group>
+            <CoachAndPositionFields form={createForm} setForm={setCreateForm} />
+            <div className="text-muted small mt-3">New accounts get the default password &quot;changeme&quot;.</div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="outline-secondary" onClick={() => setShowCreate(false)} disabled={creating}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={creating}>
+              {creating ? "Creating…" : "Create player"}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+
+      <Modal show={!!editing} onHide={() => setEditing(null)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title className="h6">Edit {editing?.name}</Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleEditSave}>
+          <Modal.Body>
+            <ErrorAlert message={editError} />
+            <Form.Group className="mb-3">
+              <Form.Label>Name</Form.Label>
+              <Form.Control value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+              />
+            </Form.Group>
+            <CoachAndPositionFields form={editForm} setForm={setEditForm} />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="outline-secondary" onClick={() => setEditing(null)} disabled={savingEdit}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={savingEdit}>
+              {savingEdit ? "Saving…" : "Save changes"}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
 
       <ConfirmModal
         show={!!confirmTarget}

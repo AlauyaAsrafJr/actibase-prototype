@@ -22,6 +22,35 @@ export default function AdminUsers() {
   const [confirmTarget, setConfirmTarget] = useState(null); // { id, action: 'archive'|'delete'|'reset'|'deactivate', name }
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const [editing, setEditing] = useState(null); // { id, name, email } | null
+  const [editForm, setEditForm] = useState({ name: "", email: "" });
+  const [editError, setEditError] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  function openEdit(r) {
+    setEditing(r);
+    setEditForm({ name: r.name, email: r.email });
+    setEditError("");
+  }
+
+  async function handleEditSave(e) {
+    e.preventDefault();
+    if (!editForm.name.trim() || !editForm.email.trim()) {
+      setEditError("Name and email are required.");
+      return;
+    }
+    setEditError("");
+    setSavingEdit(true);
+    try {
+      await api.patch(`/admin/users/${editing.id}`, editForm);
+      setEditing(null);
+      reload();
+    } catch (err) {
+      setEditError(err.message);
+    } finally {
+      setSavingEdit(false);
+    }
+  }
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -79,6 +108,9 @@ export default function AdminUsers() {
       label: "",
       render: (r) => (
         <div className="d-flex gap-2 justify-content-end flex-wrap">
+          <Button size="sm" variant="outline-secondary" onClick={() => openEdit(r)}>
+            Edit
+          </Button>
           <Button
             size="sm"
             variant="outline-secondary"
@@ -181,6 +213,37 @@ export default function AdminUsers() {
             </Button>
             <Button type="submit" disabled={submitting}>
               {submitting ? "Creating…" : "Create user"}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+
+      <Modal show={!!editing} onHide={() => setEditing(null)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title className="h6">Edit {editing?.name}</Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleEditSave}>
+          <Modal.Body>
+            <ErrorAlert message={editError} />
+            <Form.Group className="mb-3">
+              <Form.Label>Name</Form.Label>
+              <Form.Control value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+              />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="outline-secondary" onClick={() => setEditing(null)} disabled={savingEdit}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={savingEdit}>
+              {savingEdit ? "Saving…" : "Save changes"}
             </Button>
           </Modal.Footer>
         </Form>

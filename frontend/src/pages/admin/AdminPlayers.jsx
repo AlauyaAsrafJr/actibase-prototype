@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Badge from "react-bootstrap/Badge";
+import Form from "react-bootstrap/Form";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import { useFetch } from "../../hooks/useFetch";
 import { api } from "../../api/client";
@@ -15,6 +16,17 @@ export default function AdminPlayers() {
   const { data: players, loading, error, reload } = useFetch("/admin/players");
   const [confirmTarget, setConfirmTarget] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [sport, setSport] = useState("all");
+
+  const sports = useMemo(() => {
+    if (!players) return [];
+    return [...new Set(players.map((p) => p.sport).filter(Boolean))].sort();
+  }, [players]);
+
+  const filtered = useMemo(() => {
+    if (!players) return [];
+    return sport === "all" ? players : players.filter((p) => p.sport === sport);
+  }, [players, sport]);
 
   async function handleConfirm() {
     if (!confirmTarget) return;
@@ -81,9 +93,22 @@ export default function AdminPlayers() {
 
   return (
     <div>
-      <PageHeader title="Players" subtitle="Every player across every sport, program-wide." />
+      <PageHeader
+        title="Players"
+        subtitle="Every player across every sport, program-wide."
+        actions={
+          <Form.Select size="sm" style={{ width: 180 }} value={sport} onChange={(e) => setSport(e.target.value)}>
+            <option value="all">All sports</option>
+            {sports.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </Form.Select>
+        }
+      />
       <ErrorAlert message={error} />
-      {loading ? <Loading /> : <DataTable columns={columns} rows={players} emptyMessage="No players yet." />}
+      {loading ? <Loading /> : <DataTable columns={columns} rows={filtered} emptyMessage="No players in this sport yet." />}
 
       <ConfirmModal
         show={!!confirmTarget}

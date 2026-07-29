@@ -7,7 +7,7 @@ from ..errors import ApiError
 from ..http import json_response, parse_body
 from ..security import hash_password
 from ..serializers import full_name, player_out, user_out
-from ..utils import attendance_pct
+from ..utils import attendance_pct, report_summary
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 admin_bp.before_request(require_role("admin"))
@@ -284,7 +284,7 @@ def list_reports():
         q = q.filter((models.ReportAnalytics.sport == sport) | (models.ReportAnalytics.sport == "All sports"))
     reports = q.order_by(models.ReportAnalytics.report_id.desc()).all()
     out = [
-        schemas.ReportOut(id=r.report_id, name=r.title, sport=r.sport, range=r.range, generated_on=r.generated_date, status=r.status)
+        schemas.ReportOut(id=r.report_id, name=r.title, sport=r.sport, range=r.range, generated_on=r.generated_date, status=r.status, details=r.details)
         for r in reports
     ]
     return json_response([o.model_dump() for o in out])
@@ -294,19 +294,21 @@ def list_reports():
 def generate_report():
     payload = parse_body(schemas.ReportCreate)
     db = get_db()
+    sport = payload.sport or "All sports"
     report = models.ReportAnalytics(
         report_type="Training",
         generated_by=g.current_user.user_id,
         generated_date="Just now",
         title=payload.name or "Untitled report",
-        sport=payload.sport or "All sports",
+        sport=sport,
         range="Custom",
         status="Ready",
+        details=report_summary(db, sport),
     )
     db.add(report)
     db.commit()
     db.refresh(report)
-    out = schemas.ReportOut(id=report.report_id, name=report.title, sport=report.sport, range=report.range, generated_on=report.generated_date, status=report.status)
+    out = schemas.ReportOut(id=report.report_id, name=report.title, sport=report.sport, range=report.range, generated_on=report.generated_date, status=report.status, details=report.details)
     return json_response(out, 201)
 
 

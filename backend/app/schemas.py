@@ -86,6 +86,7 @@ class ReportOut(BaseModel):
     range: str
     generated_on: str
     status: str
+    details: str
 
 
 class ArchiveOut(BaseModel):

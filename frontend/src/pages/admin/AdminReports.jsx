@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
@@ -11,21 +11,33 @@ import DataTable from "../../components/DataTable";
 
 export default function AdminReports() {
   const { data: reports, loading, error, reload } = useFetch("/admin/reports");
+  const [sport, setSport] = useState("all");
   const [show, setShow] = useState(false);
   const [name, setName] = useState("");
-  const [sport, setSport] = useState("");
+  const [newSport, setNewSport] = useState("");
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [viewing, setViewing] = useState(null);
+
+  const sports = useMemo(() => {
+    if (!reports) return [];
+    return [...new Set(reports.map((r) => r.sport).filter((s) => s && s !== "All sports"))].sort();
+  }, [reports]);
+
+  const filtered = useMemo(() => {
+    if (!reports) return [];
+    return sport === "all" ? reports : reports.filter((r) => r.sport === sport);
+  }, [reports, sport]);
 
   async function handleCreate(e) {
     e.preventDefault();
     setFormError("");
     setSubmitting(true);
     try {
-      await api.post("/admin/reports", { name: name.trim() || undefined, sport: sport.trim() || undefined });
+      await api.post("/admin/reports", { name: name.trim() || undefined, sport: newSport.trim() || undefined });
       setShow(false);
       setName("");
-      setSport("");
+      setNewSport("");
       reload();
     } catch (err) {
       setFormError(err.message);
@@ -44,6 +56,15 @@ export default function AdminReports() {
       label: "Status",
       render: (r) => <Badge bg={r.status === "Ready" ? "success" : "warning"}>{r.status}</Badge>,
     },
+    {
+      key: "actions",
+      label: "",
+      render: (r) => (
+        <Button size="sm" variant="outline-secondary" onClick={() => setViewing(r)}>
+          View
+        </Button>
+      ),
+    },
   ];
 
   return (
@@ -52,13 +73,23 @@ export default function AdminReports() {
         title="Reports"
         subtitle="Program-wide reports across every sport."
         actions={
-          <Button size="sm" onClick={() => setShow(true)}>
-            Generate report
-          </Button>
+          <div className="d-flex gap-2">
+            <Form.Select size="sm" style={{ width: 180 }} value={sport} onChange={(e) => setSport(e.target.value)}>
+              <option value="all">All sports</option>
+              {sports.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </Form.Select>
+            <Button size="sm" onClick={() => setShow(true)}>
+              Generate report
+            </Button>
+          </div>
         }
       />
       <ErrorAlert message={error} />
-      {loading ? <Loading /> : <DataTable columns={columns} rows={reports} emptyMessage="No reports yet." />}
+      {loading ? <Loading /> : <DataTable columns={columns} rows={filtered} emptyMessage="No reports in this sport yet." />}
 
       <Modal show={show} onHide={() => setShow(false)} centered>
         <Modal.Header closeButton>
@@ -73,7 +104,7 @@ export default function AdminReports() {
             </Form.Group>
             <Form.Group>
               <Form.Label>Sport</Form.Label>
-              <Form.Control value={sport} onChange={(e) => setSport(e.target.value)} placeholder="All sports" />
+              <Form.Control value={newSport} onChange={(e) => setNewSport(e.target.value)} placeholder="All sports" />
             </Form.Group>
           </Modal.Body>
           <Modal.Footer>
@@ -85,6 +116,23 @@ export default function AdminReports() {
             </Button>
           </Modal.Footer>
         </Form>
+      </Modal>
+
+      <Modal show={!!viewing} onHide={() => setViewing(null)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title className="h6">{viewing?.name}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="text-muted small mb-3">
+            {viewing?.sport} · {viewing?.range} · Generated {viewing?.generated_on}
+          </div>
+          <div>{viewing?.details}</div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="outline-secondary" size="sm" onClick={() => setViewing(null)}>
+            Close
+          </Button>
+        </Modal.Footer>
       </Modal>
     </div>
   );

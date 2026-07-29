@@ -27,6 +27,7 @@ from .models import (
     TrainingActivity,
 )
 from .security import hash_password
+from .utils import report_summary
 
 DEMO_PASSWORD = "password123"
 DEFAULT_PASSWORD = "changeme"
@@ -186,26 +187,35 @@ def seed(db: Session) -> None:
         ))
 
     # ---- reports/analytics ----
+    # status is always "Ready" — generation is synchronous, so there's no real
+    # in-progress state to model. details is real, computed content (same
+    # helper the live "Generate report" action uses), not placeholder text.
     admin_reports = [
-        ("Weekly Attendance Summary", "All sports", "Jul 6–12, 2026", "Jul 13, 2026", "Ready"),
-        ("Basketball Engagement Report", "Basketball", "Jun 1–30, 2026", "Jul 2, 2026", "Ready"),
-        ("Coach Evaluation — Term 2", "All sports", "This term", "Jul 10, 2026", "Ready"),
-        ("Swimming Attendance Trend", "Swimming", "Last 30 days", "Jul 11, 2026", "Generating"),
-        ("Player Performance Digest", "All sports", "This term", "Jul 9, 2026", "Ready"),
-        ("Track & Field Session Log", "Track & Field", "Jul 1–13, 2026", "Jul 13, 2026", "Ready"),
-        ("Inactive Players Watchlist", "All sports", "This term", "Jul 8, 2026", "Ready"),
-        ("Soccer Attendance Trend", "Soccer", "Last 7 days", "Jul 12, 2026", "Generating"),
+        ("Weekly Attendance Summary", "All sports", "Jul 6–12, 2026", "Jul 13, 2026"),
+        ("Basketball Engagement Report", "Basketball", "Jun 1–30, 2026", "Jul 2, 2026"),
+        ("Coach Evaluation — Term 2", "All sports", "This term", "Jul 10, 2026"),
+        ("Swimming Attendance Trend", "Swimming", "Last 30 days", "Jul 11, 2026"),
+        ("Player Performance Digest", "All sports", "This term", "Jul 9, 2026"),
+        ("Track & Field Session Log", "Track & Field", "Jul 1–13, 2026", "Jul 13, 2026"),
+        ("Inactive Players Watchlist", "All sports", "This term", "Jul 8, 2026"),
+        ("Soccer Attendance Trend", "Soccer", "Last 7 days", "Jul 12, 2026"),
     ]
-    for title, sport, range_, generated_on, status in admin_reports:
-        db.add(ReportAnalytics(report_type="Training", generated_by=dana_su.user_id, generated_date=generated_on, title=title, sport=sport, range=range_, status=status))
+    for title, sport, range_, generated_on in admin_reports:
+        db.add(ReportAnalytics(
+            report_type="Training", generated_by=dana_su.user_id, generated_date=generated_on,
+            title=title, sport=sport, range=range_, status="Ready", details=report_summary(db, sport),
+        ))
 
     coach_reports = [
-        ("Weekly Attendance Summary — Basketball", "Jul 6–12, 2026", "Jul 13, 2026", "Ready"),
-        ("Team Performance Report", "This term", "Jul 10, 2026", "Ready"),
-        ("Player Evaluation Digest", "Last 30 days", "Jul 8, 2026", "Ready"),
+        ("Weekly Attendance Summary — Basketball", "Jul 6–12, 2026", "Jul 13, 2026"),
+        ("Team Performance Report", "This term", "Jul 10, 2026"),
+        ("Player Evaluation Digest", "Last 30 days", "Jul 8, 2026"),
     ]
-    for title, range_, generated_on, status in coach_reports:
-        db.add(ReportAnalytics(report_type="Training", generated_by=marcus_su.user_id, generated_date=generated_on, title=title, sport="Basketball", range=range_, status=status))
+    for title, range_, generated_on in coach_reports:
+        db.add(ReportAnalytics(
+            report_type="Training", generated_by=marcus_su.user_id, generated_date=generated_on,
+            title=title, sport="Basketball", range=range_, status="Ready", details=report_summary(db, "Basketball"),
+        ))
 
     # ---- statistics ----
     db.add(Statistic(stats_type="Attendance Summary", generated_by=dana_su.user_id, description="Program-wide attendance check", data_payload="91.2% average attendance across 24 players", generated_date="Jul 13, 2026"))

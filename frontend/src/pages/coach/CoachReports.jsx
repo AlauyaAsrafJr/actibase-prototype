@@ -15,6 +15,7 @@ export default function CoachReports() {
   const [name, setName] = useState("");
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [viewing, setViewing] = useState(null);
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -41,6 +42,15 @@ export default function CoachReports() {
       key: "status",
       label: "Status",
       render: (r) => <Badge bg={r.status === "Ready" ? "success" : "warning"}>{r.status}</Badge>,
+    },
+    {
+      key: "actions",
+      label: "",
+      render: (r) => (
+        <Button size="sm" variant="outline-secondary" onClick={() => setViewing(r)}>
+          View
+        </Button>
+      ),
     },
   ];
 
@@ -79,6 +89,23 @@ export default function CoachReports() {
             </Button>
           </Modal.Footer>
         </Form>
+      </Modal>
+
+      <Modal show={!!viewing} onHide={() => setViewing(null)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title className="h6">{viewing?.name}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="text-muted small mb-3">
+            {viewing?.sport} · {viewing?.range} · Generated {viewing?.generated_on}
+          </div>
+          <div>{viewing?.details}</div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="outline-secondary" size="sm" onClick={() => setViewing(null)}>
+            Close
+          </Button>
+        </Modal.Footer>
       </Modal>
     </div>
   );

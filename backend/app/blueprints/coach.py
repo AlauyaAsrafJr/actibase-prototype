@@ -7,7 +7,7 @@ from ..database import get_db
 from ..errors import ApiError
 from ..http import json_response, parse_body
 from ..serializers import full_name, user_out
-from ..utils import attendance_pct, last_eval_date
+from ..utils import attendance_pct, last_eval_date, report_summary
 
 coach_bp = Blueprint("coach", __name__, url_prefix="/coach")
 coach_bp.before_request(require_role("coach"))
@@ -264,7 +264,7 @@ def list_reports():
     db = get_db()
     reports = db.query(models.ReportAnalytics).filter(models.ReportAnalytics.generated_by == g.current_user.user_id).order_by(models.ReportAnalytics.report_id.desc()).all()
     out = [
-        schemas.ReportOut(id=r.report_id, name=r.title, sport=r.sport, range=r.range, generated_on=r.generated_date, status=r.status)
+        schemas.ReportOut(id=r.report_id, name=r.title, sport=r.sport, range=r.range, generated_on=r.generated_date, status=r.status, details=r.details)
         for r in reports
     ]
     return json_response([o.model_dump() for o in out])
@@ -278,11 +278,12 @@ def generate_report():
     report = models.ReportAnalytics(
         report_type="Training", generated_by=g.current_user.user_id, generated_date="Just now",
         title=payload.name or "Untitled report", sport=coach.specialization, range="Custom", status="Ready",
+        details=report_summary(db, coach.specialization),
     )
     db.add(report)
     db.commit()
     db.refresh(report)
-    out = schemas.ReportOut(id=report.report_id, name=report.title, sport=report.sport, range=report.range, generated_on=report.generated_date, status=report.status)
+    out = schemas.ReportOut(id=report.report_id, name=report.title, sport=report.sport, range=report.range, generated_on=report.generated_date, status=report.status, details=report.details)
     return json_response(out.model_dump(), 201)
 
 

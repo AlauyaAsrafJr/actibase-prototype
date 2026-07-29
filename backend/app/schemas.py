@@ -50,11 +50,13 @@ class AdminUserCreate(BaseModel):
     name: str
     email: EmailStr
     role: str = "Coach"  # Admin | Coach
+    sport: str | None = None  # only meaningful when role is Coach
 
 
 class AdminUserUpdate(BaseModel):
     name: str | None = None
     email: EmailStr | None = None
+    sport: str | None = None  # only applied when the account is a Coach
 
 
 class AdminPlayerCreate(BaseModel):

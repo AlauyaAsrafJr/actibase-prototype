@@ -18,16 +18,18 @@ const STATUS_VARIANT = { Active: "success", Inactive: "secondary", Archived: "da
 export default function AdminUsers() {
   const { data: users, loading, error, reload } = useFetch("/admin/users");
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", role: "Coach" });
+  const [form, setForm] = useState({ name: "", email: "", role: "Coach", sport: "" });
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState(null); // { id, action: 'archive'|'delete'|'reset'|'deactivate', name }
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [editing, setEditing] = useState(null); // { id, name, email } | null
-  const [editForm, setEditForm] = useState({ name: "", email: "" });
+  const [editForm, setEditForm] = useState({ name: "", email: "", sport: "" });
   const [editError, setEditError] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
+
+  const existingSports = [...new Set((users || []).filter((u) => u.role === "coach" && u.sport).map((u) => u.sport))].sort();
 
   const [selected, setSelected] = useState(() => new Set());
   const [bulkConfirm, setBulkConfirm] = useState(false);
@@ -71,7 +73,7 @@ export default function AdminUsers() {
 
   function openEdit(r) {
     setEditing(r);
-    setEditForm({ name: r.name, email: r.email });
+    setEditForm({ name: r.name, email: r.email, sport: r.sport || "" });
     setEditError("");
   }
 
@@ -84,7 +86,9 @@ export default function AdminUsers() {
     setEditError("");
     setSavingEdit(true);
     try {
-      await api.patch(`/admin/users/${editing.id}`, editForm);
+      const payload = { name: editForm.name, email: editForm.email };
+      if (editing.role === "coach") payload.sport = editForm.sport;
+      await api.patch(`/admin/users/${editing.id}`, payload);
       setEditing(null);
       reload();
     } catch (err) {
@@ -103,9 +107,9 @@ export default function AdminUsers() {
     setFormError("");
     setSubmitting(true);
     try {
-      await api.post("/admin/users", form);
+      await api.post("/admin/users", form.role === "Coach" ? form : { name: form.name, email: form.email, role: form.role });
       setShowCreate(false);
-      setForm({ name: "", email: "", role: "Coach" });
+      setForm({ name: "", email: "", role: "Coach", sport: "" });
       reload();
     } catch (err) {
       setFormError(err.message);
@@ -144,6 +148,7 @@ export default function AdminUsers() {
     { key: "name", label: "Name" },
     { key: "email", label: "Email" },
     { key: "role", label: "Role", render: (r) => <span className="text-capitalize">{r.role}</span> },
+    { key: "sport", label: "Sport", render: (r) => r.sport || "—" },
     {
       key: "status",
       label: "Status",
@@ -251,13 +256,30 @@ export default function AdminUsers() {
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
             </Form.Group>
-            <Form.Group>
+            <Form.Group className="mb-3">
               <Form.Label>Role</Form.Label>
               <Form.Select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
                 <option value="Admin">Admin</option>
                 <option value="Coach">Coach</option>
               </Form.Select>
             </Form.Group>
+            {form.role === "Coach" && (
+              <Form.Group>
+                <Form.Label>Sport</Form.Label>
+                <Form.Control
+                  list="sport-options"
+                  value={form.sport}
+                  onChange={(e) => setForm({ ...form, sport: e.target.value })}
+                  placeholder="Basketball, or type a new sport…"
+                />
+                <datalist id="sport-options">
+                  {existingSports.map((s) => (
+                    <option key={s} value={s} />
+                  ))}
+                </datalist>
+                <div className="text-muted small mt-1">Type an existing sport, or a new one to add it to the program.</div>
+              </Form.Group>
+            )}
             <div className="text-muted small mt-3">New accounts get the default password &quot;changeme&quot;.</div>
           </Modal.Body>
           <Modal.Footer>
@@ -282,7 +304,7 @@ export default function AdminUsers() {
               <Form.Label>Name</Form.Label>
               <Form.Control value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
             </Form.Group>
-            <Form.Group>
+            <Form.Group className={editing?.role === "coach" ? "mb-3" : ""}>
               <Form.Label>Email</Form.Label>
               <Form.Control
                 type="email"
@@ -290,6 +312,22 @@ export default function AdminUsers() {
                 onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
               />
             </Form.Group>
+            {editing?.role === "coach" && (
+              <Form.Group>
+                <Form.Label>Sport</Form.Label>
+                <Form.Control
+                  list="sport-options"
+                  value={editForm.sport}
+                  onChange={(e) => setEditForm({ ...editForm, sport: e.target.value })}
+                  placeholder="Basketball, or type a new sport…"
+                />
+                <datalist id="sport-options">
+                  {existingSports.map((s) => (
+                    <option key={s} value={s} />
+                  ))}
+                </datalist>
+              </Form.Group>
+            )}
           </Modal.Body>
           <Modal.Footer>
             <Button variant="outline-secondary" onClick={() => setEditing(null)} disabled={savingEdit}>

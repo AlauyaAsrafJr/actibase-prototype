@@ -89,7 +89,10 @@ def create_user():
     db.flush()
     first, last = payload.name.strip().split(" ", 1) if " " in payload.name.strip() else (payload.name.strip(), "")
     if role == "coach":
-        profile = models.Coach(user_id=su.user_id, first_name=first, last_name=last, email=payload.email)
+        profile = models.Coach(
+            user_id=su.user_id, first_name=first, last_name=last, email=payload.email,
+            specialization=payload.sport.strip() if payload.sport and payload.sport.strip() else None,
+        )
     else:
         profile = models.Admin(user_id=su.user_id, first_name=first, last_name=last, email=payload.email)
     db.add(profile)
@@ -127,6 +130,8 @@ def update_user(user_id: int):
     if payload.email is not None:
         profile.email = payload.email
         su.username = payload.email
+    if payload.sport is not None and isinstance(profile, models.Coach):
+        profile.specialization = payload.sport.strip() or None
     db.commit()
     db.refresh(su)
     db.refresh(profile)

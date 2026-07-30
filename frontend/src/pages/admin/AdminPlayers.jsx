@@ -240,6 +240,8 @@ export default function AdminPlayers() {
     { key: "name", label: "Name" },
     { key: "sport", label: "Sport" },
     { key: "coach_name", label: "Coach", render: (r) => r.coach_name || "—" },
+    { key: "position", label: "Position", render: (r) => r.position || "—" },
+    { key: "year", label: "Year", render: (r) => r.year || "—" },
     {
       key: "attendance_pct",
       label: "Attendance",

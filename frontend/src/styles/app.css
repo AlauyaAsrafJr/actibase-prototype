@@ -532,21 +532,43 @@ a,
 
 /* ---------- recent activity feed ---------- */
 
-.ab-activity-table {
-  --bs-table-bg: transparent;
-  --bs-table-color: var(--text-primary);
+.ab-activity-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
 }
-.ab-activity-table th {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-  border-bottom-color: var(--border-subtle);
-  font-weight: 600;
+.ab-activity-feed li {
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0.85rem;
 }
-.ab-activity-table td {
-  border-bottom-color: var(--border-subtle);
+.ab-activity-feed li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.ab-activity-feed-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+.ab-activity-feed-actor {
   font-size: 0.87rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.ab-activity-feed-when {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.ab-activity-feed-detail {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
 }
 .ab-activity-badge {
   display: inline-block;

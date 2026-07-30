@@ -1,5 +1,4 @@
 import Card from "react-bootstrap/Card";
-import Table from "react-bootstrap/Table";
 import { EmptyState } from "./Feedback";
 
 const ACTION_BADGE_CLASS = {
@@ -17,30 +16,18 @@ export default function RecentActivityFeed({ items }) {
         <Card.Title className="h6">Recent activity</Card.Title>
         {items.length === 0 && <EmptyState message="Nothing recent yet." />}
         {items.length > 0 && (
-          <Table responsive className="ab-activity-table align-middle mb-0">
-            <thead>
-              <tr>
-                <th>Who</th>
-                <th>Action</th>
-                <th>Detail</th>
-                <th className="text-end">When</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, i) => (
-                <tr key={i}>
-                  <td>{item.actor}</td>
-                  <td>
-                    <span className={`ab-activity-badge ${ACTION_BADGE_CLASS[item.action] || ""}`}>{item.action}</span>
-                  </td>
-                  <td className="text-truncate" style={{ maxWidth: 220 }}>
-                    {item.detail}
-                  </td>
-                  <td className="text-end text-muted">{item.when}</td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
+          <ul className="ab-activity-feed">
+            {items.map((item, i) => (
+              <li key={i}>
+                <div className="ab-activity-feed-row">
+                  <span className="ab-activity-feed-actor">{item.actor}</span>
+                  <span className={`ab-activity-badge ${ACTION_BADGE_CLASS[item.action] || ""}`}>{item.action}</span>
+                  <span className="ab-activity-feed-when">{item.when}</span>
+                </div>
+                <div className="ab-activity-feed-detail">{item.detail}</div>
+              </li>
+            ))}
+          </ul>
         )}
       </Card.Body>
     </Card>

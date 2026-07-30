@@ -148,6 +148,21 @@ class PerformanceFeedback(Base):
     attitude: Mapped[int] = mapped_column(Integer, default=3)
 
 
+class Season(Base):
+    """Additive — not in the ERD. Seasons/terms aren't tracked as their own
+    entity there, but reports need a real time boundary to scope against
+    beyond fixed "last N days" presets; a season's date range is resolved
+    on the fly rather than stamped onto every attendance/evaluation row."""
+
+    __tablename__ = "seasons"
+
+    season_id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(80))
+    start_date: Mapped[str] = mapped_column(String(40))
+    end_date: Mapped[str] = mapped_column(String(40))
+    is_active: Mapped[bool] = mapped_column(default=False)
+
+
 class ReportAnalytics(Base):
     __tablename__ = "reports_analytics"
 

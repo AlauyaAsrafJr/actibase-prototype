@@ -114,7 +114,28 @@ class PlayerOut(BaseModel):
 class ReportCreate(BaseModel):
     name: str
     sport: str | None = None
-    range: str = "All time"  # one of utils.REPORT_RANGES
+    range: str = "All time"  # one of utils.REPORT_RANGES — ignored if season_id is set
+    season_id: int | None = None
+
+
+class SeasonCreate(BaseModel):
+    name: str
+    start_date: str
+    end_date: str
+
+
+class SeasonUpdate(BaseModel):
+    name: str | None = None
+    start_date: str | None = None
+    end_date: str | None = None
+
+
+class SeasonOut(BaseModel):
+    id: int
+    name: str
+    start_date: str
+    end_date: str
+    is_active: bool
 
 
 class ReportOut(BaseModel):

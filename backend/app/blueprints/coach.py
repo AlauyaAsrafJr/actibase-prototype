@@ -7,7 +7,7 @@ from ..database import get_db
 from ..errors import ApiError
 from ..http import json_response, parse_body
 from ..serializers import full_name, user_out
-from ..utils import REPORT_RANGES, attendance_pct, last_eval_date, report_summary
+from ..utils import REPORT_RANGES, attendance_pct, last_eval_date, report_summary, season_window
 
 coach_bp = Blueprint("coach", __name__, url_prefix="/coach")
 coach_bp.before_request(require_role("coach"))
@@ -371,17 +371,35 @@ def list_reports():
     return json_response([o.model_dump() for o in out])
 
 
+@coach_bp.get("/seasons")
+def list_seasons():
+    db = get_db()
+    seasons = db.query(models.Season).order_by(models.Season.season_id.desc()).all()
+    out = [schemas.SeasonOut(id=s.season_id, name=s.name, start_date=s.start_date, end_date=s.end_date, is_active=s.is_active) for s in seasons]
+    return json_response([o.model_dump() for o in out])
+
+
 @coach_bp.post("/reports")
 def generate_report():
     payload = parse_body(schemas.ReportCreate)
-    if payload.range not in REPORT_RANGES:
-        raise ApiError(f"range must be one of: {', '.join(REPORT_RANGES)}", 400)
     db = get_db()
     coach = _current_coach(db)
+
+    range_label = payload.range
+    window = None
+    if payload.season_id is not None:
+        season = db.get(models.Season, payload.season_id)
+        if season is None:
+            raise ApiError("Season not found", 404)
+        range_label = season.name
+        window = season_window(season)
+    elif payload.range not in REPORT_RANGES:
+        raise ApiError(f"range must be one of: {', '.join(REPORT_RANGES)}", 400)
+
     report = models.ReportAnalytics(
         report_type="Training", generated_by=g.current_user.user_id, generated_date="Just now",
-        title=payload.name or "Untitled report", sport=coach.specialization, range=payload.range, status="Ready",
-        details=report_summary(db, coach.specialization, payload.range),
+        title=payload.name or "Untitled report", sport=coach.specialization, range=range_label, status="Ready",
+        details=report_summary(db, coach.specialization, range_label, window),
     )
     db.add(report)
     db.commit()

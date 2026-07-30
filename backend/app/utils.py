@@ -17,6 +17,10 @@ def _parse_date(value: str) -> date | None:
         return None
 
 
+# Public alias — season validation (admin.py) needs the same parser.
+parse_date = _parse_date
+
+
 def _range_window(range_label: str) -> tuple[date, date] | None:
     """None means unbounded (All time or an unrecognized label)."""
     today = _parse_date(TODAY_LABEL)
@@ -25,6 +29,14 @@ def _range_window(range_label: str) -> tuple[date, date] | None:
     if range_label == "Last 30 days":
         return today - timedelta(days=29), today
     return None
+
+
+def season_window(season: "models.Season") -> tuple[date, date] | None:
+    start = _parse_date(season.start_date)
+    end = _parse_date(season.end_date)
+    if start is None or end is None:
+        return None
+    return (start, end)
 
 
 def attendance_pct(db: Session, player_id: int) -> int:
@@ -61,11 +73,20 @@ def _attendance_pct_in_window(db: Session, player_id: int, window: tuple[date, d
     return round(present_or_late / len(records) * 100)
 
 
-def report_summary(db: Session, sport: str | None = None, range_label: str = "All time") -> str:
+def report_summary(
+    db: Session,
+    sport: str | None = None,
+    range_label: str = "All time",
+    window: tuple[date, date] | None = None,
+) -> str:
     """Real, computed report body — pulled from live attendance/evaluation/
     training data, scoped to a sport and a date range when given. Dates are
     stored as strings ("Jul 20, 2026"), so the range is applied in Python
     against the parsed value, not in SQL.
+
+    Pass `window` directly (e.g. a season's date range) to bypass the
+    range_label presets entirely; window=None with an unrecognized/"All
+    time" range_label means unbounded.
     """
     players_q = db.query(models.Player)
     if sport and sport != "All sports":
@@ -74,7 +95,8 @@ def report_summary(db: Session, sport: str | None = None, range_label: str = "Al
     if not players:
         return "No players in scope for this report."
     player_ids = [p.player_id for p in players]
-    window = _range_window(range_label)
+    if window is None:
+        window = _range_window(range_label)
 
     pct_values = [v for v in (_attendance_pct_in_window(db, pid, window) for pid in player_ids) if v is not None]
     avg_attendance = round(sum(pct_values) / len(pct_values), 1) if pct_values else None

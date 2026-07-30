@@ -22,6 +22,7 @@ from .models import (
     Player,
     PerformanceFeedback,
     ReportAnalytics,
+    Season,
     Statistic,
     SystemUser,
     TrainingActivity,
@@ -238,6 +239,10 @@ def seed(db: Session) -> None:
     ]
     for name, type_, archived_on, archived_by in archive_data:
         db.add(ArchivedRecord(record_type=type_, record_id=None, archive_data=name, archived_at=archived_on, archived_by=archived_by))
+
+    # ---- seasons ----
+    db.add(Season(name="AY 2025-2026, 2nd Semester", start_date="Jan 5, 2026", end_date="May 30, 2026", is_active=False))
+    db.add(Season(name="AY 2026-2027, Summer Term", start_date="Jun 1, 2026", end_date="Aug 31, 2026", is_active=True))
 
     db.commit()
     tyler = players_by_name["Tyler Owens"]

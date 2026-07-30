@@ -13,6 +13,7 @@ const REPORT_RANGES = ["Last 7 days", "Last 30 days", "All time"];
 
 export default function CoachReports() {
   const { data: reports, loading, error, reload } = useFetch("/coach/reports");
+  const { data: seasons } = useFetch("/coach/seasons");
   const [show, setShow] = useState(false);
   const [name, setName] = useState("");
   const [range, setRange] = useState(REPORT_RANGES[2]);
@@ -25,7 +26,10 @@ export default function CoachReports() {
     setFormError("");
     setSubmitting(true);
     try {
-      await api.post("/coach/reports", { name: name.trim() || undefined, range });
+      const payload = { name: name.trim() || undefined };
+      if (range.startsWith("season:")) payload.season_id = Number(range.slice("season:".length));
+      else payload.range = range;
+      await api.post("/coach/reports", payload);
       setShow(false);
       setName("");
       reload();
@@ -85,11 +89,22 @@ export default function CoachReports() {
             <Form.Group>
               <Form.Label>Range</Form.Label>
               <Form.Select value={range} onChange={(e) => setRange(e.target.value)}>
-                {REPORT_RANGES.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
+                <optgroup label="Presets">
+                  {REPORT_RANGES.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </optgroup>
+                {seasons?.length > 0 && (
+                  <optgroup label="Seasons">
+                    {seasons.map((s) => (
+                      <option key={s.id} value={`season:${s.id}`}>
+                        {s.name} ({s.start_date} – {s.end_date}){s.is_active ? " · Active" : ""}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </Form.Select>
               <div className="text-muted small mt-1">Attendance, evaluations, and sessions are computed only within this range.</div>
             </Form.Group>

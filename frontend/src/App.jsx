@@ -11,6 +11,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminPlayers from "./pages/admin/AdminPlayers";
 import AdminSessions from "./pages/admin/AdminSessions";
 import AdminReports from "./pages/admin/AdminReports";
+import AdminSeasons from "./pages/admin/AdminSeasons";
 import AdminStatistics from "./pages/admin/AdminStatistics";
 import AdminLoginHistory from "./pages/admin/AdminLoginHistory";
 import AdminArchive from "./pages/admin/AdminArchive";
@@ -53,6 +54,7 @@ export default function App() {
               <Route path="/admin/players" element={<AdminPlayers />} />
               <Route path="/admin/sessions" element={<AdminSessions />} />
               <Route path="/admin/reports" element={<AdminReports />} />
+              <Route path="/admin/seasons" element={<AdminSeasons />} />
               <Route path="/admin/statistics" element={<AdminStatistics />} />
               <Route path="/admin/login-history" element={<AdminLoginHistory />} />
               <Route path="/admin/archive" element={<AdminArchive />} />

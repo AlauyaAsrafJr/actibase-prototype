@@ -7,7 +7,7 @@ from ..errors import ApiError
 from ..http import json_response, parse_body
 from ..security import hash_password
 from ..serializers import full_name, player_out, user_out
-from ..utils import REPORT_RANGES, attendance_pct, report_summary
+from ..utils import REPORT_RANGES, attendance_pct, parse_date, report_summary, season_window
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 admin_bp.before_request(require_role("admin"))
@@ -419,25 +419,114 @@ def list_reports():
 @admin_bp.post("/reports")
 def generate_report():
     payload = parse_body(schemas.ReportCreate)
-    if payload.range not in REPORT_RANGES:
-        raise ApiError(f"range must be one of: {', '.join(REPORT_RANGES)}", 400)
     db = get_db()
     sport = payload.sport or "All sports"
+
+    range_label = payload.range
+    window = None
+    if payload.season_id is not None:
+        season = db.get(models.Season, payload.season_id)
+        if season is None:
+            raise ApiError("Season not found", 404)
+        range_label = season.name
+        window = season_window(season)
+    elif payload.range not in REPORT_RANGES:
+        raise ApiError(f"range must be one of: {', '.join(REPORT_RANGES)}", 400)
+
     report = models.ReportAnalytics(
         report_type="Training",
         generated_by=g.current_user.user_id,
         generated_date="Just now",
         title=payload.name or "Untitled report",
         sport=sport,
-        range=payload.range,
+        range=range_label,
         status="Ready",
-        details=report_summary(db, sport, payload.range),
+        details=report_summary(db, sport, range_label, window),
     )
     db.add(report)
     db.commit()
     db.refresh(report)
     out = schemas.ReportOut(id=report.report_id, name=report.title, sport=report.sport, range=report.range, generated_on=report.generated_date, status=report.status, details=report.details)
     return json_response(out, 201)
+
+
+# ---- seasons ----
+
+
+def _season_out(s: models.Season) -> dict:
+    return schemas.SeasonOut(id=s.season_id, name=s.name, start_date=s.start_date, end_date=s.end_date, is_active=s.is_active).model_dump()
+
+
+def _validate_season_dates(start_date: str, end_date: str) -> None:
+    start = parse_date(start_date)
+    end = parse_date(end_date)
+    if start is None or end is None:
+        raise ApiError('Dates must look like "Aug 1, 2026"', 400)
+    if start >= end:
+        raise ApiError("Start date must be before end date", 400)
+
+
+@admin_bp.get("/seasons")
+def list_seasons():
+    db = get_db()
+    seasons = db.query(models.Season).order_by(models.Season.season_id.desc()).all()
+    return json_response([_season_out(s) for s in seasons])
+
+
+@admin_bp.post("/seasons")
+def create_season():
+    payload = parse_body(schemas.SeasonCreate)
+    _validate_season_dates(payload.start_date, payload.end_date)
+    db = get_db()
+    season = models.Season(name=payload.name.strip(), start_date=payload.start_date, end_date=payload.end_date, is_active=False)
+    db.add(season)
+    db.commit()
+    db.refresh(season)
+    return json_response(_season_out(season), 201)
+
+
+@admin_bp.patch("/seasons/<int:season_id>")
+def update_season(season_id: int):
+    payload = parse_body(schemas.SeasonUpdate)
+    db = get_db()
+    season = db.get(models.Season, season_id)
+    if season is None:
+        raise ApiError("Season not found", 404)
+    new_start = payload.start_date if payload.start_date is not None else season.start_date
+    new_end = payload.end_date if payload.end_date is not None else season.end_date
+    if payload.start_date is not None or payload.end_date is not None:
+        _validate_season_dates(new_start, new_end)
+    if payload.name is not None:
+        season.name = payload.name.strip()
+    season.start_date = new_start
+    season.end_date = new_end
+    db.commit()
+    db.refresh(season)
+    return json_response(_season_out(season))
+
+
+@admin_bp.post("/seasons/<int:season_id>/activate")
+def activate_season(season_id: int):
+    db = get_db()
+    season = db.get(models.Season, season_id)
+    if season is None:
+        raise ApiError("Season not found", 404)
+    db.query(models.Season).update({models.Season.is_active: False})
+    season.is_active = True
+    db.commit()
+    db.refresh(season)
+    return json_response(_season_out(season))
+
+
+@admin_bp.delete("/seasons/<int:season_id>")
+def delete_season(season_id: int):
+    db = get_db()
+    season = db.get(models.Season, season_id)
+    if season is None:
+        raise ApiError("Season not found", 404)
+    db.delete(season)
+    db.commit()
+    return "", 204
 
 
 # ---- statistics ----

@@ -1,4 +1,5 @@
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import Dropdown from "react-bootstrap/Dropdown";
 import {
   Archive,
@@ -13,10 +14,12 @@ import {
   History,
   LayoutDashboard,
   Megaphone,
+  Menu,
   TrendingUp,
   UserCircle,
   UserRound,
   Users,
+  X,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useFetch } from "../hooks/useFetch";
@@ -94,8 +97,14 @@ function useNotifications(role) {
 export default function AppLayout({ role, title }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const items = NAV_ITEMS[role] || [];
   const { count: notifCount, items: notifItems } = useNotifications(role);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [location.pathname]);
 
   async function handleLogout() {
     await logout();
@@ -104,10 +113,14 @@ export default function AppLayout({ role, title }) {
 
   return (
     <div className="ab-app-shell" data-role={role}>
-      <aside className="ab-sidebar">
+      {drawerOpen && <div className="ab-sidebar-backdrop" onClick={() => setDrawerOpen(false)} />}
+      <aside className={"ab-sidebar" + (drawerOpen ? " ab-sidebar--open" : "")}>
         <div className="ab-sidebar-brand">
           <img src="/msu-logo.png" alt="Mindanao State University" className="ab-brand-mark" width={34} height={42} />
           <span className="ab-sidebar-brand-text">Actibase</span>
+          <button type="button" className="ab-drawer-close" onClick={() => setDrawerOpen(false)} aria-label="Close menu">
+            <X size={20} />
+          </button>
         </div>
         <div className="ab-sidebar-role">{ROLE_LABEL[role]} Module</div>
         <nav className="nav flex-column flex-grow-1">
@@ -134,7 +147,12 @@ export default function AppLayout({ role, title }) {
       </aside>
       <div className="ab-main">
         <header className="ab-topbar d-flex justify-content-between align-items-center">
-          <h1 className="h5 mb-0">{title}</h1>
+          <div className="d-flex align-items-center gap-2">
+            <button type="button" className="ab-menu-btn" onClick={() => setDrawerOpen(true)} aria-label="Open menu">
+              <Menu size={20} />
+            </button>
+            <h1 className="h5 mb-0">{title}</h1>
+          </div>
           <div className="d-flex align-items-center gap-2">
             <Dropdown align="end">
               <Dropdown.Toggle as="button" className="ab-bell-btn" id="notif-menu">

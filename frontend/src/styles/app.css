@@ -237,6 +237,31 @@ a,
   padding: 1.25rem 1.25rem 0.9rem;
 }
 
+.ab-menu-btn,
+.ab-drawer-close {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: 0.5rem;
+}
+.ab-menu-btn:hover,
+.ab-drawer-close:hover {
+  background: var(--bg-panel-alt);
+  color: var(--text-primary);
+}
+.ab-drawer-close {
+  margin-left: auto;
+}
+
+.ab-sidebar-backdrop {
+  display: none;
+}
+
 .ab-brand-mark {
   flex-shrink: 0;
   filter: drop-shadow(0 4px 10px rgba(224, 53, 95, 0.3));
@@ -724,40 +749,35 @@ h2.h4,
   .ab-app-shell {
     flex-direction: column;
   }
+
+  .ab-menu-btn {
+    display: inline-flex;
+  }
+  .ab-drawer-close {
+    display: inline-flex;
+  }
+
   .ab-sidebar {
-    width: 100%;
-    min-height: auto;
-    position: static;
-    flex-direction: row;
-    align-items: center;
-    border-right: none;
-    border-bottom: 1px solid var(--border-subtle);
-    flex-wrap: nowrap;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    max-width: 85vw;
+    min-height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    z-index: 1050;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
   }
-  .ab-sidebar-brand {
-    padding: 0.6rem 0.75rem;
+  .ab-sidebar--open {
+    transform: translateX(0);
   }
-  .ab-sidebar-brand-text {
-    display: none;
-  }
-  .ab-sidebar-role,
-  .ab-sidebar-footer {
-    display: none;
-  }
-  .ab-sidebar nav {
-    flex-direction: row !important;
-    overflow-x: auto;
-    flex-grow: 0 !important;
-    -webkit-overflow-scrolling: touch;
-  }
-  .ab-sidebar .nav-link {
-    white-space: nowrap;
-    border-radius: 0;
-    border-bottom: 3px solid transparent;
-    padding: 0.85rem 0.9rem;
-  }
-  .ab-sidebar .nav-link.active {
-    border-bottom: 3px solid var(--accent-gold);
-    border-radius: 0;
+
+  .ab-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 1040;
   }
 }

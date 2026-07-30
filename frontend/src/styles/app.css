@@ -220,19 +220,8 @@ a,
 }
 
 .ab-brand-mark {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
-  background: linear-gradient(155deg, var(--accent-crimson) 0%, var(--accent-crimson-dark) 100%);
-  color: var(--accent-gold);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-collegiate);
-  font-weight: 700;
-  font-size: 1.05rem;
   flex-shrink: 0;
-  box-shadow: 0 0 0 1px var(--border-subtle), 0 6px 16px rgba(224, 53, 95, 0.25);
+  filter: drop-shadow(0 4px 10px rgba(224, 53, 95, 0.3));
 }
 
 .ab-sidebar-brand-text {
@@ -482,7 +471,7 @@ h2.h4,
   overflow: hidden;
 }
 
-.ab-auth-illustration svg {
+.ab-auth-illustration > svg {
   width: 100%;
   height: 100%;
 }

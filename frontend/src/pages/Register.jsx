@@ -4,10 +4,11 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import ToggleButton from "react-bootstrap/ToggleButton";
-import { GraduationCap, Lock, Mail, User } from "lucide-react";
+import { Lock, Mail, User } from "lucide-react";
 import { api } from "../api/client";
 import { ErrorAlert } from "../components/Feedback";
 import AuthIllustration from "../components/AuthIllustration";
+import VarsityCrest from "../components/VarsityCrest";
 
 const ROLES = [
   { value: "admin", label: "Admin" },
@@ -67,7 +68,7 @@ export default function Register() {
       <div className="ab-auth-form-side">
         <div className="ab-auth-card">
           <div className="ab-auth-icon">
-            <GraduationCap size={26} />
+            <VarsityCrest compact size={40} />
           </div>
           <div className="text-center mb-4">
             <div className="fw-bold fs-4">Create your account</div>

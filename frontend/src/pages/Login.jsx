@@ -3,10 +3,11 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
-import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { ErrorAlert } from "../components/Feedback";
 import AuthIllustration from "../components/AuthIllustration";
+import VarsityCrest from "../components/VarsityCrest";
 
 export default function Login() {
   const { login } = useAuth();
@@ -46,7 +47,7 @@ export default function Login() {
       <div className="ab-auth-form-side">
         <div className="ab-auth-card">
           <div className="ab-auth-icon">
-            <User size={26} />
+            <VarsityCrest compact size={40} />
           </div>
           <div className="text-center mb-4">
             <div className="fw-bold fs-4">Welcome back</div>

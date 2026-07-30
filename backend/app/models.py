@@ -77,6 +77,7 @@ class Coach(Base):
     # Additive:
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
     years_coaching: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    profile_photo: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     user: Mapped["SystemUser"] = relationship()
 

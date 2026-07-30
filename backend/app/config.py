@@ -17,3 +17,6 @@ DATABASE_URL = os.environ.get(
 # The frontend mock data hardcodes "today" as this date throughout; kept
 # here so seeded data and "today's sessions" style queries line up with it.
 TODAY_LABEL = "Jul 14, 2026"
+
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads", "profile_photos")
+MAX_PHOTO_BYTES = 5 * 1024 * 1024  # 5 MB

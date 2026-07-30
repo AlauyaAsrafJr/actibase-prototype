@@ -301,6 +301,32 @@ a,
 
 .ab-avatar {
   background: var(--accent-crimson);
+  overflow: hidden;
+}
+.ab-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ab-profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--accent-crimson);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ab-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* ---------- notification bell ---------- */

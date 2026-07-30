@@ -7,6 +7,7 @@ import { useFetch } from "../../hooks/useFetch";
 import { api } from "../../api/client";
 import { Loading, ErrorAlert } from "../../components/Feedback";
 import PageHeader from "../../components/PageHeader";
+import ProfilePhotoUploader from "../../components/ProfilePhotoUploader";
 
 const FIELDS = ["name", "sport", "email", "phone", "bio", "years_coaching"];
 
@@ -49,6 +50,7 @@ export default function CoachProfile() {
           <Card.Body>
             {saved && <Alert variant="success">Profile updated.</Alert>}
             <ErrorAlert message={saveError} />
+            <ProfilePhotoUploader photoUrl={form.photo_url} name={form.name} uploadPath="/coach/profile/photo" onChange={setForm} />
             <Form onSubmit={handleSave}>
               <Form.Group className="mb-3">
                 <Form.Label>Name</Form.Label>

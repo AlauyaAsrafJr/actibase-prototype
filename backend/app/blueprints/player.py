@@ -1,10 +1,11 @@
-from flask import Blueprint, g
+from flask import Blueprint, g, request
 
 from .. import models, schemas
 from ..auth import require_role
 from ..database import get_db
 from ..http import json_response, parse_body
 from ..serializers import announcement_out, full_name, user_out
+from ..uploads import delete_profile_photo, save_profile_photo
 from ..utils import attendance_pct, eval_average, visible_announcements
 
 player_bp = Blueprint("player", __name__, url_prefix="/player")
@@ -199,6 +200,29 @@ def update_profile():
     db.commit()
     db.refresh(player)
     return json_response(user_out(su, player))
+
+
+@player_bp.post("/profile/photo")
+def upload_profile_photo():
+    db = get_db()
+    player = _current_player(db)
+    new_url = save_profile_photo(request.files.get("photo"))
+    delete_profile_photo(player.profile_photo)
+    player.profile_photo = new_url
+    db.commit()
+    db.refresh(player)
+    return json_response(user_out(g.current_user, player))
+
+
+@player_bp.delete("/profile/photo")
+def remove_profile_photo():
+    db = get_db()
+    player = _current_player(db)
+    delete_profile_photo(player.profile_photo)
+    player.profile_photo = None
+    db.commit()
+    db.refresh(player)
+    return json_response(user_out(g.current_user, player))
 
 
 @player_bp.get("/announcements")

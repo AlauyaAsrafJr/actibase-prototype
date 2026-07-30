@@ -1,4 +1,4 @@
-from flask import Blueprint, g
+from flask import Blueprint, g, request
 
 from .. import models, schemas
 from ..auth import require_role
@@ -7,6 +7,7 @@ from ..database import get_db
 from ..errors import ApiError
 from ..http import json_response, parse_body
 from ..serializers import announcement_out, full_name, user_out
+from ..uploads import delete_profile_photo, save_profile_photo
 from ..utils import (
     REPORT_RANGES,
     attendance_pct,
@@ -524,3 +525,26 @@ def update_profile():
     db.commit()
     db.refresh(coach)
     return json_response(user_out(su, coach))
+
+
+@coach_bp.post("/profile/photo")
+def upload_profile_photo():
+    db = get_db()
+    coach = _current_coach(db)
+    new_url = save_profile_photo(request.files.get("photo"))
+    delete_profile_photo(coach.profile_photo)
+    coach.profile_photo = new_url
+    db.commit()
+    db.refresh(coach)
+    return json_response(user_out(g.current_user, coach))
+
+
+@coach_bp.delete("/profile/photo")
+def remove_profile_photo():
+    db = get_db()
+    coach = _current_coach(db)
+    delete_profile_photo(coach.profile_photo)
+    coach.profile_photo = None
+    db.commit()
+    db.refresh(coach)
+    return json_response(user_out(g.current_user, coach))

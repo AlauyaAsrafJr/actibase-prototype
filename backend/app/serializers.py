@@ -22,6 +22,7 @@ def user_out(su: models.SystemUser, profile) -> schemas.UserOut:
         status=su.status,
         last_active=su.last_login or "Never",
         last_admin_action=su.last_admin_action,
+        photo_url=getattr(profile, "profile_photo", None),
     )
     if isinstance(profile, models.Player):
         return schemas.UserOut(

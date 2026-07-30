@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:5000";
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:5000";
 const TOKEN_KEY = "actibase_token";
 
 export class ApiError extends Error {
@@ -65,10 +65,26 @@ export async function download(path, filename) {
   URL.revokeObjectURL(url);
 }
 
+export async function upload(path, formData) {
+  const headers = {};
+  const token = getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(`${BASE_URL}${path}`, { method: "POST", headers, body: formData });
+  const isJson = res.headers.get("content-type")?.includes("application/json");
+  const data = isJson ? await res.json() : null;
+
+  if (!res.ok) {
+    throw new ApiError(data?.detail || res.statusText, res.status);
+  }
+  return data;
+}
+
 export const api = {
   get: (path) => request("GET", path),
   post: (path, body) => request("POST", path, body),
   patch: (path, body) => request("PATCH", path, body),
   delete: (path) => request("DELETE", path),
   download,
+  upload,
 };

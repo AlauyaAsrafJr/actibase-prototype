@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useFetch } from "../hooks/useFetch";
+import { BASE_URL } from "../api/client";
 
 const NAV_ITEMS = {
   admin: [
@@ -161,7 +162,7 @@ export default function AppLayout({ role, title }) {
                   className="ab-avatar rounded-circle text-white d-inline-flex align-items-center justify-content-center"
                   style={{ width: 28, height: 28, fontSize: 13 }}
                 >
-                  {user?.name?.[0]?.toUpperCase() ?? "?"}
+                  {user?.photo_url ? <img src={`${BASE_URL}${user.photo_url}`} alt={user.name} /> : (user?.name?.[0]?.toUpperCase() ?? "?")}
                 </span>
                 {user?.name}
               </Dropdown.Toggle>

@@ -95,6 +95,24 @@ a,
   color: var(--text-secondary) !important;
 }
 
+/* ---------- search input ---------- */
+
+.ab-search-input {
+  position: relative;
+}
+.ab-search-input .form-control {
+  padding-left: 2rem;
+  border-radius: 999px;
+}
+.ab-search-icon {
+  position: absolute;
+  left: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
 /* ---------- forms ---------- */
 
 .form-label {

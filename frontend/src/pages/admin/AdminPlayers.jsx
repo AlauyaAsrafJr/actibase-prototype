@@ -13,6 +13,7 @@ import PageHeader from "../../components/PageHeader";
 import DataTable from "../../components/DataTable";
 import ConfirmModal from "../../components/ConfirmModal";
 import RowActionsMenu from "../../components/RowActionsMenu";
+import SearchInput from "../../components/SearchInput";
 
 const STATUS_VARIANT = { Active: "success", Inactive: "secondary", Archived: "dark" };
 const EMPTY_FORM = { lastName: "", firstName: "", middleName: "", email: "", coach_id: "", position: "", year: "" };
@@ -70,6 +71,7 @@ export default function AdminPlayers() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [sport, setSport] = useState("all");
+  const [search, setSearch] = useState("");
 
   const [showCreate, setShowCreate] = useState(false);
   const [createForm, setCreateForm] = useState(EMPTY_FORM);
@@ -88,8 +90,11 @@ export default function AdminPlayers() {
 
   const filtered = useMemo(() => {
     if (!players) return [];
-    return sport === "all" ? players : players.filter((p) => p.sport === sport);
-  }, [players, sport]);
+    const bySport = sport === "all" ? players : players.filter((p) => p.sport === sport);
+    if (!search.trim()) return bySport;
+    const q = search.trim().toLowerCase();
+    return bySport.filter((p) => p.name.toLowerCase().includes(q) || p.email.toLowerCase().includes(q));
+  }, [players, sport, search]);
 
   const [selected, setSelected] = useState(() => new Set());
   const [bulkConfirm, setBulkConfirm] = useState(false);
@@ -294,6 +299,7 @@ export default function AdminPlayers() {
         subtitle="Every player across every sport, program-wide."
         actions={
           <div className="d-flex gap-2">
+            <SearchInput value={search} onChange={setSearch} placeholder="Search by name or email…" style={{ width: 220 }} />
             <Form.Select size="sm" style={{ width: 180 }} value={sport} onChange={(e) => setSport(e.target.value)}>
               <option value="all">All sports</option>
               {sports.map((s) => (
@@ -325,7 +331,7 @@ export default function AdminPlayers() {
           </Button>
         </div>
       )}
-      {loading ? <Loading /> : <DataTable columns={columns} rows={filtered} emptyMessage="No players in this sport yet." />}
+      {loading ? <Loading /> : <DataTable columns={columns} rows={filtered} emptyMessage="No players match these filters." />}
 
       <Modal show={showCreate} onHide={() => setShowCreate(false)} centered>
         <Modal.Header closeButton>

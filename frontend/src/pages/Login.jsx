@@ -7,7 +7,6 @@ import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { ErrorAlert } from "../components/Feedback";
 import AuthIllustration from "../components/AuthIllustration";
-import VarsityCrest from "../components/VarsityCrest";
 
 export default function Login() {
   const { login } = useAuth();
@@ -47,7 +46,7 @@ export default function Login() {
       <div className="ab-auth-form-side">
         <div className="ab-auth-card">
           <div className="ab-auth-icon">
-            <VarsityCrest compact size={40} />
+            <img src="/msu-logo.png" alt="Mindanao State University" width={34} height={42} />
           </div>
           <div className="text-center mb-4">
             <div className="fw-bold fs-4">Welcome back</div>

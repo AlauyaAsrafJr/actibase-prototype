@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useFetch } from "../hooks/useFetch";
-import VarsityCrest from "./VarsityCrest";
 
 const NAV_ITEMS = {
   admin: [
@@ -100,7 +99,7 @@ export default function AppLayout({ role, title }) {
     <div className="ab-app-shell" data-role={role}>
       <aside className="ab-sidebar">
         <div className="ab-sidebar-brand">
-          <VarsityCrest compact size={34} className="ab-brand-mark" />
+          <img src="/msu-logo.png" alt="Mindanao State University" className="ab-brand-mark" width={34} height={42} />
           <span className="ab-sidebar-brand-text">Actibase</span>
         </div>
         <div className="ab-sidebar-role">{ROLE_LABEL[role]} Module</div>

@@ -1,5 +1,3 @@
-import VarsityCrest from "./VarsityCrest";
-
 export default function AuthIllustration() {
   return (
     <svg viewBox="0 0 500 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -60,9 +58,7 @@ export default function AuthIllustration() {
       </g>
 
       {/* crest */}
-      <g transform="translate(185 284)">
-        <VarsityCrest size={130} />
-      </g>
+      <image href="/msu-logo.png" x="185" y="279" width="130" height="162" />
 
       {/* sparkles */}
       {[

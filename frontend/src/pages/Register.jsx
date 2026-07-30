@@ -8,7 +8,6 @@ import { Lock, Mail, User } from "lucide-react";
 import { api } from "../api/client";
 import { ErrorAlert } from "../components/Feedback";
 import AuthIllustration from "../components/AuthIllustration";
-import VarsityCrest from "../components/VarsityCrest";
 
 const ROLES = [
   { value: "admin", label: "Admin" },
@@ -68,7 +67,7 @@ export default function Register() {
       <div className="ab-auth-form-side">
         <div className="ab-auth-card">
           <div className="ab-auth-icon">
-            <VarsityCrest compact size={40} />
+            <img src="/msu-logo.png" alt="Mindanao State University" width={34} height={42} />
           </div>
           <div className="text-center mb-4">
             <div className="fw-bold fs-4">Create your account</div>

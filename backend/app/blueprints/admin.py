@@ -509,6 +509,7 @@ def reports_summary():
         total_trend=week_over_week_trend(dates),
         this_month=this_month,
         this_term=this_term,
+        active_season_name=active_season.name if active_season else None,
         sports_covered=len(sport_counts),
         by_sport=by_sport,
     )

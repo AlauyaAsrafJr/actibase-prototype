@@ -177,6 +177,7 @@ class ReportsSummaryOut(BaseModel):
     total_trend: int
     this_month: int
     this_term: int | None
+    active_season_name: str | None
     sports_covered: int
     by_sport: list[SportCount]
 

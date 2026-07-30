@@ -129,10 +129,22 @@ export default function AdminReports() {
             <StatCard label="Total reports" value={summary.total} icon={FileText} tone="maroon" {...formatTrend(summary.total_trend)} />
           </Col>
           <Col xs={6} md={3}>
-            <StatCard label="This month" value={summary.this_month} icon={CalendarDays} tone="gold" />
+            <StatCard
+              label="This month"
+              value={summary.this_month}
+              icon={CalendarDays}
+              tone="gold"
+              hint={summary.total ? `${Math.round((summary.this_month / summary.total) * 100)}% of all reports` : undefined}
+            />
           </Col>
           <Col xs={6} md={3}>
-            <StatCard label="This term" value={summary.this_term ?? "—"} icon={CalendarRange} tone="teal" />
+            <StatCard
+              label="This term"
+              value={summary.this_term ?? "—"}
+              icon={CalendarRange}
+              tone="teal"
+              hint={summary.active_season_name || "No active season"}
+            />
           </Col>
           <Col xs={6} md={3}>
             <StatCard label="Sports covered" value={summary.sports_covered} icon={Trophy} tone="blue" />

@@ -4,13 +4,13 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Dropdown from "react-bootstrap/Dropdown";
-import ProgressBar from "react-bootstrap/ProgressBar";
 import { useFetch } from "../../hooks/useFetch";
 import { api } from "../../api/client";
 import { Loading, ErrorAlert } from "../../components/Feedback";
 import PageHeader from "../../components/PageHeader";
 import DataTable from "../../components/DataTable";
 import RowActionsMenu from "../../components/RowActionsMenu";
+import AttendanceBar from "../../components/AttendanceBar";
 
 export default function CoachRoster() {
   const { data: roster, loading, error, reload } = useFetch("/coach/roster");
@@ -49,19 +49,7 @@ export default function CoachRoster() {
     { key: "name", label: "Name" },
     { key: "year", label: "Year", render: (r) => r.year || "—" },
     { key: "position", label: "Position", render: (r) => r.position || "—" },
-    {
-      key: "attendance_pct",
-      label: "Attendance",
-      render: (r) => (
-        <div style={{ maxWidth: 140 }}>
-          <ProgressBar
-            now={r.attendance_pct}
-            label={`${r.attendance_pct}%`}
-            variant={r.attendance_pct >= 80 ? "success" : r.attendance_pct >= 50 ? "warning" : "danger"}
-          />
-        </div>
-      ),
-    },
+    { key: "attendance_pct", label: "Attendance", render: (r) => <AttendanceBar value={r.attendance_pct} /> },
     { key: "last_eval", label: "Last eval" },
     {
       key: "actions",

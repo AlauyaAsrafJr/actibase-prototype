@@ -5,7 +5,6 @@ import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Alert from "react-bootstrap/Alert";
 import Dropdown from "react-bootstrap/Dropdown";
-import ProgressBar from "react-bootstrap/ProgressBar";
 import { useFetch } from "../../hooks/useFetch";
 import { api } from "../../api/client";
 import { Loading, ErrorAlert } from "../../components/Feedback";
@@ -14,6 +13,7 @@ import DataTable from "../../components/DataTable";
 import ConfirmModal from "../../components/ConfirmModal";
 import RowActionsMenu from "../../components/RowActionsMenu";
 import SearchInput from "../../components/SearchInput";
+import AttendanceBar from "../../components/AttendanceBar";
 
 const STATUS_VARIANT = { Active: "success", Inactive: "secondary", Archived: "dark" };
 const EMPTY_FORM = { lastName: "", firstName: "", middleName: "", email: "", coach_id: "", position: "", year: "" };
@@ -247,19 +247,7 @@ export default function AdminPlayers() {
     { key: "coach_name", label: "Coach", render: (r) => r.coach_name || "—" },
     { key: "position", label: "Position", render: (r) => r.position || "—" },
     { key: "year", label: "Year", render: (r) => r.year || "—" },
-    {
-      key: "attendance_pct",
-      label: "Attendance",
-      render: (r) => (
-        <div style={{ maxWidth: 140 }}>
-          <ProgressBar
-            now={r.attendance_pct}
-            label={`${r.attendance_pct}%`}
-            variant={r.attendance_pct >= 80 ? "success" : r.attendance_pct >= 50 ? "warning" : "danger"}
-          />
-        </div>
-      ),
-    },
+    { key: "attendance_pct", label: "Attendance", render: (r) => <AttendanceBar value={r.attendance_pct} /> },
     { key: "last_eval", label: "Last eval" },
     {
       key: "status",

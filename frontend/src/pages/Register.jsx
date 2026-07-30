@@ -61,7 +61,7 @@ export default function Register() {
 
   return (
     <div className="ab-auth-shell">
-      <div className="ab-auth-illustration d-none d-md-flex">
+      <div className="ab-auth-illustration">
         <AuthIllustration />
       </div>
       <div className="ab-auth-form-side">

@@ -44,6 +44,15 @@ OTHER_SPORTS_COACHES = [
     ("Marcus Lowe", "Tennis", [("Nathan Voss", "Senior", "Singles"), ("Ivy Coleman", "Junior", "Doubles")]),
 ]
 
+# A few accounts backdated onto the TODAY_LABEL timeline so the dashboard's
+# week-over-week signup trend has real (not zero-everywhere) data to show.
+NEW_SIGNUP_CREATED_AT = {
+    "Reggie Cole": datetime(2026, 7, 3, 9, 0, tzinfo=timezone.utc),  # prior week
+    "Isaiah Grant": datetime(2026, 7, 12, 9, 0, tzinfo=timezone.utc),  # this week
+    "Trey Nolan": datetime(2026, 7, 13, 9, 0, tzinfo=timezone.utc),  # this week
+    "Priya Nandan": datetime(2026, 7, 10, 9, 0, tzinfo=timezone.utc),  # this week (coach)
+}
+
 BASKETBALL_ROSTER = [
     ("Tyler Owens", "Senior", "Guard", DEMO_PASSWORD),
     ("Jaden Brooks", "Junior", "Forward", DEFAULT_PASSWORD),
@@ -63,8 +72,10 @@ def _split(name: str) -> tuple[str, str]:
     return (parts[0], parts[1] if len(parts) > 1 else "")
 
 
-def make_admin(db: Session, name: str, email: str, password: str) -> tuple[SystemUser, Admin]:
+def make_admin(db: Session, name: str, email: str, password: str, created_at=None) -> tuple[SystemUser, Admin]:
     su = SystemUser(username=email, password=hash_password(password), role="admin", status="Active", last_login="Today")
+    if created_at is not None:
+        su.created_at = created_at
     db.add(su)
     db.flush()
     first, last = _split(name)
@@ -74,8 +85,10 @@ def make_admin(db: Session, name: str, email: str, password: str) -> tuple[Syste
     return su, admin
 
 
-def make_coach(db: Session, name: str, email: str, password: str, **extra) -> tuple[SystemUser, Coach]:
+def make_coach(db: Session, name: str, email: str, password: str, created_at=None, **extra) -> tuple[SystemUser, Coach]:
     su = SystemUser(username=email, password=hash_password(password), role="coach", status="Active", last_login="Today")
+    if created_at is not None:
+        su.created_at = created_at
     db.add(su)
     db.flush()
     first, last = _split(name)
@@ -85,8 +98,10 @@ def make_coach(db: Session, name: str, email: str, password: str, **extra) -> tu
     return su, coach
 
 
-def make_player(db: Session, name: str, email: str, password: str, coach: Coach, **extra) -> tuple[SystemUser, Player]:
+def make_player(db: Session, name: str, email: str, password: str, coach: Coach, created_at=None, **extra) -> tuple[SystemUser, Player]:
     su = SystemUser(username=email, password=hash_password(password), role="player", status="Active", last_login="Today")
+    if created_at is not None:
+        su.created_at = created_at
     db.add(su)
     db.flush()
     first, last = _split(name)
@@ -120,7 +135,7 @@ def seed(db: Session) -> None:
     players_by_name: dict[str, Player] = {}
     for name, year, position, password in BASKETBALL_ROSTER:
         email = name.lower().replace(" ", ".") + "@actibase.edu"
-        _su, p = make_player(db, name, email, password, marcus, position=position, year=year)
+        _su, p = make_player(db, name, email, password, marcus, position=position, year=year, created_at=NEW_SIGNUP_CREATED_AT.get(name))
         players_by_name[name] = p
     db.flush()
 
@@ -131,6 +146,7 @@ def seed(db: Session) -> None:
         _csu, coach = make_coach(
             db, coach_name, coach_email, DEFAULT_PASSWORD, specialization=sport,
             contact_number="(555) 010-0000", years_coaching="4", bio=f"Building a competitive {sport} program.",
+            created_at=NEW_SIGNUP_CREATED_AT.get(coach_name),
         )
         other_coaches[sport] = coach
         for name, year, position in roster:
@@ -169,6 +185,31 @@ def seed(db: Session) -> None:
                 player = players_by_name[name]
                 db.add(Attendance(player_id=player.player_id, coach_id=marcus.coach_id, date=date, status=status_val))
                 db.add(Participation(player_id=player.player_id, activity_id=activity.activity_id, participation_status="Absent" if status_val == "absent" else "Completed"))
+    db.flush()
+
+    # ---- earlier weekly practice history for Marcus's team, so the
+    # dashboard's attendance trend chart has a real multi-week season arc
+    # instead of just the last two weeks ----
+    historical_weeks = [
+        ("May 3, 2026", {"Reggie Cole", "Trey Nolan", "Isaiah Grant"}),
+        ("May 10, 2026", {"Miles Ford", "Kai Sutton", "Andre Vance"}),
+        ("May 17, 2026", {"Devon Marsh", "Reggie Cole"}),
+        ("May 24, 2026", {"Marcus Hill", "Trey Nolan", "Isaiah Grant"}),
+        ("May 31, 2026", {"Kai Sutton", "Miles Ford"}),
+        ("Jun 7, 2026", {"Andre Vance", "Reggie Cole"}),
+        ("Jun 14, 2026", {"Isaiah Grant"}),
+        ("Jun 21, 2026", {"Devon Marsh", "Trey Nolan"}),
+        ("Jun 28, 2026", {"Marcus Hill"}),
+    ]
+    for date, absent_names in historical_weeks:
+        activity = TrainingActivity(coach_id=marcus.coach_id, activity_name="Practice", activity_date=date, time="4:00 PM", location="Main Gym", duration="90 min", status="Completed")
+        db.add(activity)
+        db.flush()
+        for name, *_ in BASKETBALL_ROSTER:
+            status_val = "absent" if name in absent_names else "present"
+            player = players_by_name[name]
+            db.add(Attendance(player_id=player.player_id, coach_id=marcus.coach_id, date=date, status=status_val))
+            db.add(Participation(player_id=player.player_id, activity_id=activity.activity_id, participation_status="Absent" if status_val == "absent" else "Completed"))
     db.flush()
 
     # ---- performance feedback (Tyler gets a fuller history) ----

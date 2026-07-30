@@ -7,7 +7,18 @@ from ..database import get_db
 from ..errors import ApiError
 from ..http import json_response, parse_body
 from ..serializers import announcement_out, full_name, user_out
-from ..utils import REPORT_RANGES, attendance_pct, last_eval_date, report_summary, season_window, visible_announcements
+from ..utils import (
+    REPORT_RANGES,
+    attendance_pct,
+    last_eval_date,
+    recent_activity_feed,
+    report_summary,
+    season_window,
+    signup_trend,
+    top_players_leaderboard,
+    visible_announcements,
+    weekly_attendance_trend,
+)
 
 coach_bp = Blueprint("coach", __name__, url_prefix="/coach")
 coach_bp.before_request(require_role("coach"))
@@ -43,13 +54,23 @@ def dashboard():
     evaluated_player_ids = {
         f.player_id for f in db.query(models.PerformanceFeedback).filter(models.PerformanceFeedback.coach_id == coach.coach_id).all()
     }
+
+    attendance_trend = weekly_attendance_trend(db, coach_id=coach.coach_id)
+    recent_weeks = [p["value"] for p in attendance_trend[-2:] if p["value"] is not None]
+    attendance_rate_trend = (attendance_trend[-1]["value"] - attendance_trend[-2]["value"]) if len(recent_weeks) == 2 else 0
+
     out = schemas.CoachDashboardOut(
         player_count=len(roster),
+        players_trend=signup_trend(db, "player", coach_id=coach.coach_id),
         todays_sessions=sum(1 for a in activities if a.activity_date == TODAY_LABEL),
         attendance_rate=avg_rate,
+        attendance_rate_trend=attendance_rate_trend,
         pending_evaluations=sum(1 for p in roster if p.player_id not in evaluated_player_ids),
         upcoming_training=sum(1 for a in activities if a.status == "Scheduled"),
         recent_feedback=db.query(models.PerformanceFeedback).filter(models.PerformanceFeedback.coach_id == coach.coach_id).count(),
+        attendance_trend=attendance_trend,
+        recent_activity=recent_activity_feed(db, coach_id=coach.coach_id),
+        top_players=top_players_leaderboard(db, coach_id=coach.coach_id),
     )
     return json_response(out)
 

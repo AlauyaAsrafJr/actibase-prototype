@@ -177,13 +177,41 @@ class BulkIds(BaseModel):
     ids: list[int]
 
 
+class TrendPoint(BaseModel):
+    label: str
+    value: int | None
+
+
+class ActivityItem(BaseModel):
+    actor: str
+    action: str
+    detail: str
+    when: str
+
+
+class TopPlayerItem(BaseModel):
+    player_id: int
+    name: str
+    position: str | None
+    avg_rating: float
+
+
 class AdminDashboardOut(BaseModel):
     total_players: int
+    players_trend: int
     total_coaches: int
+    coaches_trend: int
     total_users_active: int
+    active_trend: int
     total_sessions: int
+    sessions_trend: int
     total_reports: int
+    reports_trend: int
     archived_records: int
+    archived_trend: int
+    attendance_trend: list[TrendPoint]
+    recent_activity: list[ActivityItem]
+    top_players: list[TopPlayerItem]
 
 
 class ResetPasswordOut(BaseModel):
@@ -308,11 +336,16 @@ class RosterPlayerUpdate(BaseModel):
 
 class CoachDashboardOut(BaseModel):
     player_count: int
+    players_trend: int
     todays_sessions: int
     attendance_rate: int
+    attendance_rate_trend: int
     pending_evaluations: int
     upcoming_training: int
     recent_feedback: int
+    attendance_trend: list[TrendPoint]
+    recent_activity: list[ActivityItem]
+    top_players: list[TopPlayerItem]
 
 
 # ---- player ----

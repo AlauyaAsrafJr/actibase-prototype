@@ -410,6 +410,153 @@ a,
   color: var(--text-secondary);
 }
 
+.ab-stat-trend {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.ab-stat-trend--good {
+  color: #29c46a;
+  background: rgba(41, 196, 106, 0.14);
+}
+.ab-stat-trend--bad {
+  color: #ec6a6a;
+  background: rgba(236, 106, 106, 0.14);
+}
+.ab-stat-trend--neutral {
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ---------- donut + side legend ---------- */
+
+.ab-donut-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.ab-donut-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.85rem;
+}
+.ab-donut-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ab-donut-legend-label {
+  color: var(--text-primary);
+  flex-grow: 1;
+}
+.ab-donut-legend-pct {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- recent activity feed ---------- */
+
+.ab-activity-table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--text-primary);
+}
+.ab-activity-table th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  border-bottom-color: var(--border-subtle);
+  font-weight: 600;
+}
+.ab-activity-table td {
+  border-bottom-color: var(--border-subtle);
+  font-size: 0.87rem;
+}
+.ab-activity-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.06);
+}
+.ab-activity-badge--good {
+  color: #29c46a;
+  background: rgba(41, 196, 106, 0.14);
+}
+.ab-activity-badge--info {
+  color: var(--accent-blue);
+  background: rgba(77, 139, 245, 0.14);
+}
+.ab-activity-badge--warn {
+  color: var(--accent-gold);
+  background: rgba(234, 181, 60, 0.14);
+}
+
+/* ---------- top players leaderboard ---------- */
+
+.ab-leaderboard {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.ab-leaderboard li {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.ab-leaderboard-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-crimson-tint);
+  color: var(--accent-crimson);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+.ab-leaderboard-info {
+  flex-grow: 1;
+  min-width: 0;
+}
+.ab-leaderboard-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
+}
+.ab-leaderboard-bar-track {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.ab-leaderboard-bar-fill {
+  height: 100%;
+  background: var(--accent-gold);
+  border-radius: 999px;
+}
+.ab-leaderboard-score {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
 /* ---------- chart / list cards ---------- */
 
 .card {

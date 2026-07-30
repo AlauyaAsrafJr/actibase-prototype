@@ -7,7 +7,18 @@ from ..errors import ApiError
 from ..http import json_response, parse_body
 from ..security import hash_password
 from ..serializers import announcement_out, full_name, player_out, user_out
-from ..utils import REPORT_RANGES, attendance_pct, parse_date, report_summary, season_window
+from ..utils import (
+    REPORT_RANGES,
+    attendance_pct,
+    parse_date,
+    recent_activity_feed,
+    report_summary,
+    season_window,
+    signup_trend,
+    top_players_leaderboard,
+    week_over_week_trend,
+    weekly_attendance_trend,
+)
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 admin_bp.before_request(require_role("admin"))
@@ -47,13 +58,26 @@ def dashboard():
         .filter(models.SystemUser.status != "Archived")
         .all()
     ]
+    session_dates = [a.activity_date for a in db.query(models.TrainingActivity).all()]
+    report_dates = [r.generated_date for r in db.query(models.ReportAnalytics).all()]
+    archive_dates = [a.archived_at for a in db.query(models.ArchivedRecord).all()]
+
     out = schemas.AdminDashboardOut(
         total_players=len(active_player_ids),
+        players_trend=signup_trend(db, "player"),
         total_coaches=len(active_coach_ids),
+        coaches_trend=signup_trend(db, "coach"),
         total_users_active=db.query(models.SystemUser).filter(models.SystemUser.role.in_(ACCOUNT_ROLES), models.SystemUser.status == "Active").count(),
+        active_trend=signup_trend(db, "admin") + signup_trend(db, "coach"),
         total_sessions=db.query(models.TrainingActivity).count(),
+        sessions_trend=week_over_week_trend(session_dates),
         total_reports=db.query(models.ReportAnalytics).count(),
+        reports_trend=week_over_week_trend(report_dates),
         archived_records=db.query(models.ArchivedRecord).count(),
+        archived_trend=week_over_week_trend(archive_dates),
+        attendance_trend=weekly_attendance_trend(db),
+        recent_activity=recent_activity_feed(db),
+        top_players=top_players_leaderboard(db),
     )
     return json_response(out)
 

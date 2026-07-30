@@ -20,5 +20,5 @@ export function ErrorAlert({ message }) {
 }
 
 export function EmptyState({ message }) {
-  return <div className="text-muted text-center py-5 border rounded bg-white">{message}</div>;
+  return <div className="text-muted text-center py-5 ab-empty-panel">{message}</div>;
 }

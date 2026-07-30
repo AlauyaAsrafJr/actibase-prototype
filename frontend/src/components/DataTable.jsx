@@ -7,7 +7,7 @@ export default function DataTable({ columns, rows, rowKey = "id", emptyMessage =
   }
 
   return (
-    <div className="table-responsive bg-white border rounded">
+    <div className="table-responsive ab-table-card">
       <Table hover className="mb-0 align-middle">
         <thead>
           <tr>

@@ -22,3 +22,7 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+
+// Dark theme: default text/gridlines readable on dark card backgrounds.
+ChartJS.defaults.color = "#9aa1b1";
+ChartJS.defaults.borderColor = "rgba(255, 255, 255, 0.08)";

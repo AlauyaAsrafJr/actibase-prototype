@@ -1,53 +1,195 @@
 :root {
-  /* MSU campus identity — maroon & gold */
-  --msu-maroon: #7a1030;
-  --msu-maroon-dark: #5c0a24;
-  --msu-maroon-tint: #f5e7eb;
-  --msu-gold: #c9a227;
-  --msu-gold-dark: #a3811b;
-  --msu-gold-tint: #faf3df;
-  --msu-cream: #f7f5ef;
+  /* Dark athletic theme — Actibase in team colors, night mode */
+  --bg-app: #0a0c11;
+  --bg-panel: #13161f;
+  --bg-panel-alt: #1b1f2b;
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-subtle-strong: rgba(255, 255, 255, 0.14);
+
+  --text-primary: #f1f2f5;
+  --text-secondary: #9aa1b1;
+  --text-muted: #6c7386;
+
+  --accent-crimson: #e0355f;
+  --accent-crimson-dark: #b81f47;
+  --accent-crimson-tint: rgba(224, 53, 95, 0.14);
+  --accent-gold: #eab53c;
+  --accent-gold-dark: #c4931f;
+  --accent-teal: #2dd4a7;
+  --accent-blue: #4d8bf5;
+  --accent-purple: #9b6bf0;
 
   --font-collegiate: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
 
-  /* Pastel stat-card tones, cycled across dashboards */
-  --tone-maroon-bg: #f8e9ed;
-  --tone-maroon-icon: #7a1030;
-  --tone-gold-bg: #faf2d8;
-  --tone-gold-icon: #a3811b;
-  --tone-teal-bg: #e2f5ee;
-  --tone-teal-icon: #0f9d6e;
-  --tone-blue-bg: #e7f0fb;
-  --tone-blue-icon: #2a78d6;
+  /* Stat-tile icon accent colors, cycled across dashboards */
+  --tone-maroon-icon: var(--accent-crimson);
+  --tone-gold-icon: var(--accent-gold);
+  --tone-teal-icon: var(--accent-teal);
+  --tone-blue-icon: var(--accent-blue);
+
+  /* Let Bootstrap's own components (forms, dropdowns, tables, cards) pick
+     up the dark palette wherever they read these root-level variables. */
+  --bs-body-bg: var(--bg-app);
+  --bs-body-color: var(--text-primary);
+  --bs-border-color: var(--border-subtle-strong);
+  --bs-secondary-color: var(--text-secondary);
+  --bs-tertiary-bg: var(--bg-panel-alt);
+  --bs-emphasis-color: var(--text-primary);
 }
 
 body {
-  background-color: var(--msu-cream);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
 }
 
-/* Retint Bootstrap's primary utilities/components to the MSU brand */
+/* Retint Bootstrap's utilities/components to the dark athletic theme */
 .btn-primary {
-  --bs-btn-bg: var(--msu-maroon);
-  --bs-btn-border-color: var(--msu-maroon);
-  --bs-btn-hover-bg: var(--msu-maroon-dark);
-  --bs-btn-hover-border-color: var(--msu-maroon-dark);
-  --bs-btn-active-bg: var(--msu-maroon-dark);
-  --bs-btn-active-border-color: var(--msu-maroon-dark);
-  --bs-btn-disabled-bg: var(--msu-maroon);
-  --bs-btn-disabled-border-color: var(--msu-maroon);
-  --bs-btn-focus-shadow-rgb: 122, 16, 48;
+  --bs-btn-bg: var(--accent-crimson);
+  --bs-btn-border-color: var(--accent-crimson);
+  --bs-btn-hover-bg: var(--accent-crimson-dark);
+  --bs-btn-hover-border-color: var(--accent-crimson-dark);
+  --bs-btn-active-bg: var(--accent-crimson-dark);
+  --bs-btn-active-border-color: var(--accent-crimson-dark);
+  --bs-btn-disabled-bg: var(--accent-crimson);
+  --bs-btn-disabled-border-color: var(--accent-crimson);
+  --bs-btn-focus-shadow-rgb: 224, 53, 95;
 }
 .btn-outline-primary {
-  --bs-btn-color: var(--msu-maroon);
-  --bs-btn-border-color: var(--msu-maroon);
-  --bs-btn-hover-bg: var(--msu-maroon);
-  --bs-btn-hover-border-color: var(--msu-maroon);
-  --bs-btn-active-bg: var(--msu-maroon);
-  --bs-btn-active-border-color: var(--msu-maroon);
+  --bs-btn-color: var(--accent-crimson);
+  --bs-btn-border-color: var(--accent-crimson);
+  --bs-btn-hover-bg: var(--accent-crimson);
+  --bs-btn-hover-border-color: var(--accent-crimson);
+  --bs-btn-active-bg: var(--accent-crimson);
+  --bs-btn-active-border-color: var(--accent-crimson);
+}
+.btn-outline-secondary {
+  --bs-btn-color: var(--text-secondary);
+  --bs-btn-border-color: var(--border-subtle-strong);
+  --bs-btn-hover-bg: var(--bg-panel-alt);
+  --bs-btn-hover-border-color: var(--border-subtle-strong);
+  --bs-btn-hover-color: var(--text-primary);
+  --bs-btn-active-bg: var(--bg-panel-alt);
+  --bs-btn-active-border-color: var(--border-subtle-strong);
+  --bs-btn-active-color: var(--text-primary);
+}
+.btn-light {
+  --bs-btn-bg: var(--bg-panel-alt);
+  --bs-btn-border-color: var(--border-subtle-strong);
+  --bs-btn-color: var(--text-primary);
+  --bs-btn-hover-bg: var(--bg-panel);
+  --bs-btn-hover-color: var(--text-primary);
+  --bs-btn-hover-border-color: var(--border-subtle-strong);
+  --bs-btn-active-bg: var(--bg-panel);
+  --bs-btn-active-color: var(--text-primary);
 }
 a,
-.text-primary {
-  color: var(--msu-maroon);
+.text-primary,
+.btn-link {
+  color: var(--accent-crimson);
+}
+.btn-link:hover,
+.btn-link:focus {
+  color: var(--accent-crimson-dark);
+}
+.text-muted {
+  color: var(--text-secondary) !important;
+}
+
+/* ---------- forms ---------- */
+
+.form-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+.form-control,
+.form-select {
+  background-color: var(--bg-panel-alt);
+  border-color: var(--border-subtle-strong);
+  color: var(--text-primary);
+}
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--bg-panel-alt);
+  border-color: var(--accent-crimson);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 0.2rem var(--accent-crimson-tint);
+}
+.form-control::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+.form-control:disabled,
+.form-control[readonly],
+.form-select:disabled {
+  background-color: var(--bg-panel);
+  color: var(--text-muted);
+}
+.form-check-input {
+  background-color: var(--bg-panel-alt);
+  border-color: var(--border-subtle-strong);
+}
+.form-check-input:checked {
+  background-color: var(--accent-crimson);
+  border-color: var(--accent-crimson);
+}
+.form-range::-webkit-slider-runnable-track {
+  background: var(--bg-panel-alt);
+}
+.form-range::-moz-range-track {
+  background: var(--bg-panel-alt);
+}
+
+/* ---------- dropdowns / modals / alerts ---------- */
+
+.dropdown-menu {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+.dropdown-item {
+  color: var(--text-secondary);
+}
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: var(--bg-panel-alt);
+  color: var(--text-primary);
+}
+.dropdown-header,
+.dropdown-item-text {
+  color: var(--text-muted) !important;
+}
+.dropdown-divider {
+  border-color: var(--border-subtle);
+}
+
+.modal-content {
+  background-color: var(--bg-panel);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+.modal-header,
+.modal-footer {
+  border-color: var(--border-subtle);
+}
+.btn-close {
+  filter: invert(1) grayscale(100%) brightness(1.6);
+}
+
+.alert-danger {
+  --bs-alert-bg: rgba(224, 53, 95, 0.14);
+  --bs-alert-border-color: rgba(224, 53, 95, 0.35);
+  --bs-alert-color: #ff9fb5;
+}
+.alert-success {
+  --bs-alert-bg: rgba(45, 212, 167, 0.14);
+  --bs-alert-border-color: rgba(45, 212, 167, 0.35);
+  --bs-alert-color: #7fe8cc;
+}
+.alert-warning {
+  --bs-alert-bg: rgba(234, 181, 60, 0.16);
+  --bs-alert-border-color: rgba(234, 181, 60, 0.4);
+  --bs-alert-color: #f3cf7a;
 }
 
 .ab-app-shell {
@@ -55,19 +197,19 @@ a,
   display: flex;
 }
 
-/* ---------- sidebar (light) ---------- */
+/* ---------- sidebar (dark) ---------- */
 
 .ab-sidebar {
   width: 252px;
   flex-shrink: 0;
-  background: #fff;
-  color: #4b5563;
+  background: var(--bg-panel);
+  color: var(--text-secondary);
   min-height: 100vh;
   position: sticky;
   top: 0;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #eee6da;
+  border-right: 1px solid var(--border-subtle);
 }
 
 .ab-sidebar-brand {
@@ -81,8 +223,8 @@ a,
   width: 34px;
   height: 34px;
   border-radius: 9px;
-  background: linear-gradient(155deg, var(--msu-maroon) 0%, var(--msu-maroon-dark) 100%);
-  color: var(--msu-gold);
+  background: linear-gradient(155deg, var(--accent-crimson) 0%, var(--accent-crimson-dark) 100%);
+  color: var(--accent-gold);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -90,13 +232,14 @@ a,
   font-weight: 700;
   font-size: 1.05rem;
   flex-shrink: 0;
+  box-shadow: 0 0 0 1px var(--border-subtle), 0 6px 16px rgba(224, 53, 95, 0.25);
 }
 
 .ab-sidebar-brand-text {
   font-family: var(--font-collegiate);
   font-weight: 700;
   font-size: 1.15rem;
-  color: var(--msu-maroon-dark);
+  color: var(--text-primary);
   letter-spacing: -0.01em;
   line-height: 1.1;
 }
@@ -106,7 +249,7 @@ a,
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #a8a29e;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
@@ -116,7 +259,7 @@ a,
 }
 
 .ab-sidebar .nav-link {
-  color: #57534e;
+  color: var(--text-secondary);
   padding: 0.55rem 0.85rem;
   border-radius: 0.55rem;
   font-size: 0.91rem;
@@ -132,13 +275,13 @@ a,
 }
 
 .ab-sidebar .nav-link:hover {
-  background: var(--msu-cream);
-  color: var(--msu-maroon-dark);
+  background: var(--bg-panel-alt);
+  color: var(--text-primary);
 }
 
 .ab-sidebar .nav-link.active {
-  background: var(--msu-maroon-tint);
-  color: var(--msu-maroon-dark);
+  background: var(--accent-crimson-tint);
+  color: #ff88a8;
   font-weight: 700;
 }
 
@@ -149,7 +292,7 @@ a,
 .ab-sidebar-footer {
   margin-top: auto;
   padding: 1rem 1.25rem;
-  border-top: 1px solid #eee6da;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .ab-main {
@@ -158,8 +301,8 @@ a,
 }
 
 .ab-topbar {
-  background: #fff;
-  border-bottom: 1px solid #eee6da;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-subtle);
   padding: 0.85rem 1.5rem;
 }
 
@@ -168,7 +311,7 @@ a,
 }
 
 .ab-avatar {
-  background: var(--msu-maroon);
+  background: var(--accent-crimson);
 }
 
 /* ---------- notification bell ---------- */
@@ -178,16 +321,17 @@ a,
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  border: 1px solid #eee6da;
-  background: #fff;
+  border: 1px solid var(--border-subtle-strong);
+  background: var(--bg-panel-alt);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #57534e;
+  color: var(--text-secondary);
 }
 
 .ab-bell-btn:hover {
-  background: var(--msu-cream);
+  background: var(--bg-panel);
+  color: var(--text-primary);
 }
 
 /* ---------- row actions menu ---------- */
@@ -196,16 +340,17 @@ a,
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  border: 1px solid #eee6da;
-  background: #fff;
+  border: 1px solid var(--border-subtle-strong);
+  background: var(--bg-panel-alt);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #57534e;
+  color: var(--text-secondary);
 }
 
 .ab-row-actions-toggle:hover {
-  background: var(--msu-cream);
+  background: var(--bg-panel);
+  color: var(--text-primary);
 }
 
 .ab-row-actions-toggle::after {
@@ -220,35 +365,23 @@ a,
   height: 16px;
   padding: 0 3px;
   border-radius: 999px;
-  background: var(--msu-maroon);
+  background: var(--accent-crimson);
   color: #fff;
   font-size: 0.62rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #fff;
+  border: 2px solid var(--bg-panel);
 }
 
 /* ---------- stat cards ---------- */
 
 .ab-stat-card {
-  border: none;
+  border: 1px solid var(--border-subtle);
   border-radius: 0.9rem;
   padding: 1.1rem;
-}
-
-.ab-stat-card--maroon {
-  background: var(--tone-maroon-bg);
-}
-.ab-stat-card--gold {
-  background: var(--tone-gold-bg);
-}
-.ab-stat-card--teal {
-  background: var(--tone-teal-bg);
-}
-.ab-stat-card--blue {
-  background: var(--tone-blue-bg);
+  background: var(--bg-panel);
 }
 
 .ab-stat-icon {
@@ -279,21 +412,23 @@ a,
   font-size: 1.6rem;
   font-weight: 700;
   line-height: 1.1;
-  color: #292524;
+  color: var(--text-primary);
 }
 
 .ab-stat-label {
   font-size: 0.78rem;
   font-weight: 600;
-  color: #78716c;
+  color: var(--text-secondary);
 }
 
 /* ---------- chart / list cards ---------- */
 
 .card {
-  border: none;
+  border: 1px solid var(--border-subtle);
   border-radius: 0.9rem;
-  box-shadow: 0 1px 2px rgba(41, 37, 36, 0.04), 0 1px 12px rgba(41, 37, 36, 0.05);
+  background-color: var(--bg-panel);
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 
 h1.h5,
@@ -302,18 +437,45 @@ h2.h4,
   font-family: var(--font-collegiate);
 }
 
+/* ---------- tables ---------- */
+
+.ab-table-card,
+.ab-empty-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.9rem;
+}
+
+.ab-table-card {
+  overflow: hidden;
+}
+
+.ab-table-card .table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--text-primary);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.04);
+  --bs-table-hover-color: var(--text-primary);
+  --bs-table-border-color: var(--border-subtle);
+}
+
+.ab-table-card thead th {
+  background: var(--bg-panel-alt);
+  color: var(--text-muted) !important;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
 /* ---------- auth screens ---------- */
 
 .ab-auth-shell {
   min-height: 100vh;
   display: flex;
-  background: var(--msu-cream);
+  background: var(--bg-app);
 }
 
 .ab-auth-illustration {
   flex: 1.1;
   position: relative;
-  background: linear-gradient(160deg, #47091d 0%, var(--msu-maroon) 55%, var(--msu-gold-dark) 100%);
+  background: linear-gradient(160deg, #1a0510 0%, var(--accent-crimson-dark) 55%, #3a2308 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -342,8 +504,8 @@ h2.h4,
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--msu-maroon-tint);
-  color: var(--msu-maroon);
+  background: var(--accent-crimson-tint);
+  color: var(--accent-crimson);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -352,7 +514,7 @@ h2.h4,
 
 .ab-auth-card .fw-bold.fs-4 {
   font-family: var(--font-collegiate);
-  color: var(--msu-maroon-dark);
+  color: var(--text-primary);
 }
 
 .ab-input-icon-group {
@@ -364,7 +526,7 @@ h2.h4,
   left: 0.85rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #a8a29e;
+  color: var(--text-muted);
   pointer-events: none;
 }
 
@@ -389,7 +551,7 @@ h2.h4,
     flex-direction: row;
     align-items: center;
     border-right: none;
-    border-bottom: 1px solid #eee6da;
+    border-bottom: 1px solid var(--border-subtle);
     flex-wrap: nowrap;
   }
   .ab-sidebar-brand {
@@ -415,7 +577,7 @@ h2.h4,
     padding: 0.85rem 0.9rem;
   }
   .ab-sidebar .nav-link.active {
-    border-bottom: 3px solid var(--msu-gold);
+    border-bottom: 3px solid var(--accent-gold);
     border-radius: 0;
   }
 }

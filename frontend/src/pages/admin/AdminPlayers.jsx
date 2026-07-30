@@ -16,6 +16,52 @@ import RowActionsMenu from "../../components/RowActionsMenu";
 const STATUS_VARIANT = { Active: "success", Inactive: "secondary", Archived: "dark" };
 const EMPTY_FORM = { lastName: "", firstName: "", middleName: "", email: "", coach_id: "", position: "", year: "" };
 
+function NameFields({ form, setForm }) {
+  return (
+    <>
+      <Form.Group className="mb-3">
+        <Form.Label>Last name</Form.Label>
+        <Form.Control value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
+      </Form.Group>
+      <Form.Group className="mb-3">
+        <Form.Label>First name</Form.Label>
+        <Form.Control value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
+      </Form.Group>
+      <Form.Group className="mb-3">
+        <Form.Label>Middle name</Form.Label>
+        <Form.Control value={form.middleName} onChange={(e) => setForm({ ...form, middleName: e.target.value })} placeholder="Optional" />
+      </Form.Group>
+    </>
+  );
+}
+
+function CoachAndPositionFields({ form, setForm, coaches }) {
+  return (
+    <>
+      <Form.Group className="mb-3">
+        <Form.Label>Coach</Form.Label>
+        <Form.Select value={form.coach_id} onChange={(e) => setForm({ ...form, coach_id: e.target.value })}>
+          <option value="">Unassigned</option>
+          {coaches?.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+              {c.sport ? ` — ${c.sport}` : ""}
+            </option>
+          ))}
+        </Form.Select>
+      </Form.Group>
+      <Form.Group className="mb-3">
+        <Form.Label>Position</Form.Label>
+        <Form.Control value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} placeholder="Guard" />
+      </Form.Group>
+      <Form.Group>
+        <Form.Label>Year</Form.Label>
+        <Form.Control value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="Sophomore" />
+      </Form.Group>
+    </>
+  );
+}
+
 export default function AdminPlayers() {
   const { data: players, loading, error, reload } = useFetch("/admin/players");
   const { data: coaches } = useFetch("/admin/coaches");
@@ -224,52 +270,6 @@ export default function AdminPlayers() {
     },
   ];
 
-  function NameFields({ form, setForm }) {
-    return (
-      <>
-        <Form.Group className="mb-3">
-          <Form.Label>Last name</Form.Label>
-          <Form.Control value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
-        </Form.Group>
-        <Form.Group className="mb-3">
-          <Form.Label>First name</Form.Label>
-          <Form.Control value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
-        </Form.Group>
-        <Form.Group className="mb-3">
-          <Form.Label>Middle name</Form.Label>
-          <Form.Control value={form.middleName} onChange={(e) => setForm({ ...form, middleName: e.target.value })} placeholder="Optional" />
-        </Form.Group>
-      </>
-    );
-  }
-
-  function CoachAndPositionFields({ form, setForm }) {
-    return (
-      <>
-        <Form.Group className="mb-3">
-          <Form.Label>Coach</Form.Label>
-          <Form.Select value={form.coach_id} onChange={(e) => setForm({ ...form, coach_id: e.target.value })}>
-            <option value="">Unassigned</option>
-            {coaches?.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-                {c.sport ? ` — ${c.sport}` : ""}
-              </option>
-            ))}
-          </Form.Select>
-        </Form.Group>
-        <Form.Group className="mb-3">
-          <Form.Label>Position</Form.Label>
-          <Form.Control value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} placeholder="Guard" />
-        </Form.Group>
-        <Form.Group>
-          <Form.Label>Year</Form.Label>
-          <Form.Control value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="Sophomore" />
-        </Form.Group>
-      </>
-    );
-  }
-
   return (
     <div>
       <PageHeader
@@ -321,7 +321,7 @@ export default function AdminPlayers() {
                 onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
               />
             </Form.Group>
-            <CoachAndPositionFields form={createForm} setForm={setCreateForm} />
+            <CoachAndPositionFields form={createForm} setForm={setCreateForm} coaches={coaches} />
             <div className="text-muted small mt-3">New accounts get the default password &quot;changeme&quot;.</div>
           </Modal.Body>
           <Modal.Footer>
@@ -351,7 +351,7 @@ export default function AdminPlayers() {
                 onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
               />
             </Form.Group>
-            <CoachAndPositionFields form={editForm} setForm={setEditForm} />
+            <CoachAndPositionFields form={editForm} setForm={setEditForm} coaches={coaches} />
           </Modal.Body>
           <Modal.Footer>
             <Button variant="outline-secondary" onClick={() => setEditing(null)} disabled={savingEdit}>

@@ -311,6 +311,19 @@ def archive_player(player_id: int):
     return json_response(user_out(su, player))
 
 
+@admin_bp.post("/players/<int:player_id>/reset-password")
+def reset_player_password(player_id: int):
+    db = get_db()
+    player = db.get(models.Player, player_id)
+    if player is None:
+        raise ApiError("Player not found", 404)
+    su = db.get(models.SystemUser, player.user_id)
+    su.password = hash_password("changeme")
+    su.last_admin_action = f"Password reset by {_actor_name(db)} · Just now"
+    db.commit()
+    return json_response(schemas.ResetPasswordOut(reset=True, new_password="changeme"))
+
+
 @admin_bp.post("/players/archive-bulk")
 def archive_players_bulk():
     payload = parse_body(schemas.BulkIds)

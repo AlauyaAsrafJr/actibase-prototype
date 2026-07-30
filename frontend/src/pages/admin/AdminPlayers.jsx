@@ -3,6 +3,7 @@ import Button from "react-bootstrap/Button";
 import Badge from "react-bootstrap/Badge";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
+import Alert from "react-bootstrap/Alert";
 import Dropdown from "react-bootstrap/Dropdown";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import { useFetch } from "../../hooks/useFetch";
@@ -67,6 +68,7 @@ export default function AdminPlayers() {
   const { data: coaches } = useFetch("/admin/coaches");
   const [confirmTarget, setConfirmTarget] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
   const [sport, setSport] = useState("all");
 
   const [showCreate, setShowCreate] = useState(false);
@@ -209,6 +211,9 @@ export default function AdminPlayers() {
     try {
       if (confirmTarget.action === "archive") {
         await api.post(`/admin/players/${confirmTarget.id}/archive`);
+      } else if (confirmTarget.action === "reset") {
+        const result = await api.post(`/admin/players/${confirmTarget.id}/reset-password`);
+        setNotice(`${confirmTarget.name}'s password was reset to "${result.new_password}".`);
       } else {
         await api.delete(`/admin/players/${confirmTarget.id}`);
       }
@@ -218,6 +223,13 @@ export default function AdminPlayers() {
       setBusy(false);
     }
   }
+
+  const CONFIRM_COPY = {
+    delete: { title: "Delete player", body: `Permanently delete ${confirmTarget?.name}? This can't be undone.`, label: "Delete", variant: "danger" },
+    archive: { title: "Archive player", body: `Archive ${confirmTarget?.name}? They'll be moved to the archive and can be restored later.`, label: "Archive", variant: "secondary" },
+    reset: { title: "Reset password", body: `Reset ${confirmTarget?.name}'s password to the default ("changeme")?`, label: "Reset", variant: "secondary" },
+  };
+  const confirmCopy = confirmTarget ? CONFIRM_COPY[confirmTarget.action] : null;
 
   const columns = [
     {
@@ -254,6 +266,9 @@ export default function AdminPlayers() {
         <div className="text-end">
           <RowActionsMenu label={`Actions for ${r.name}`}>
             <Dropdown.Item onClick={() => openEdit(r)}>Edit</Dropdown.Item>
+            <Dropdown.Item onClick={() => setConfirmTarget({ id: r.id, action: "reset", name: r.name })}>
+              Reset password
+            </Dropdown.Item>
             <Dropdown.Item onClick={() => setConfirmTarget({ id: r.id, action: "archive", name: r.name })}>
               Archive
             </Dropdown.Item>
@@ -291,6 +306,11 @@ export default function AdminPlayers() {
           </div>
         }
       />
+      {notice && (
+        <Alert variant="success" dismissible onClose={() => setNotice("")} className="mb-3">
+          {notice}
+        </Alert>
+      )}
       <ErrorAlert message={error} />
       {selected.size > 0 && (
         <div className="d-flex align-items-center gap-2 mb-2 p-2 bg-light border rounded">
@@ -366,14 +386,10 @@ export default function AdminPlayers() {
 
       <ConfirmModal
         show={!!confirmTarget}
-        title={confirmTarget?.action === "delete" ? "Delete player" : "Archive player"}
-        body={
-          confirmTarget?.action === "delete"
-            ? `Permanently delete ${confirmTarget?.name}? This can't be undone.`
-            : `Archive ${confirmTarget?.name}? They'll be moved to the archive and can be restored later.`
-        }
-        confirmLabel={confirmTarget?.action === "delete" ? "Delete" : "Archive"}
-        variant={confirmTarget?.action === "delete" ? "danger" : "secondary"}
+        title={confirmCopy?.title}
+        body={confirmCopy?.body}
+        confirmLabel={confirmCopy?.label}
+        variant={confirmCopy?.variant}
         busy={busy}
         onConfirm={handleConfirm}
         onCancel={() => setConfirmTarget(null)}

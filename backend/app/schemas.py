@@ -163,6 +163,21 @@ class ReportOut(BaseModel):
     generated_on: str
     status: str
     details: str
+    generated_by_name: str
+
+
+class SportCount(BaseModel):
+    sport: str
+    count: int
+
+
+class ReportsSummaryOut(BaseModel):
+    total: int
+    total_trend: int
+    this_month: int
+    this_term: int | None
+    sports_covered: int
+    by_sport: list[SportCount]
 
 
 class ArchiveOut(BaseModel):

@@ -384,9 +384,11 @@ def delete_evaluation(evaluation_id: int):
 @coach_bp.get("/reports")
 def list_reports():
     db = get_db()
+    coach = _current_coach(db)
+    coach_name = full_name(coach.first_name, coach.last_name)
     reports = db.query(models.ReportAnalytics).filter(models.ReportAnalytics.generated_by == g.current_user.user_id).order_by(models.ReportAnalytics.report_id.desc()).all()
     out = [
-        schemas.ReportOut(id=r.report_id, name=r.title, sport=r.sport, range=r.range, generated_on=r.generated_date, status=r.status, details=r.details)
+        schemas.ReportOut(id=r.report_id, name=r.title, sport=r.sport, range=r.range, generated_on=r.generated_date, status=r.status, details=r.details, generated_by_name=coach_name)
         for r in reports
     ]
     return json_response([o.model_dump() for o in out])
@@ -425,7 +427,10 @@ def generate_report():
     db.add(report)
     db.commit()
     db.refresh(report)
-    out = schemas.ReportOut(id=report.report_id, name=report.title, sport=report.sport, range=report.range, generated_on=report.generated_date, status=report.status, details=report.details)
+    out = schemas.ReportOut(
+        id=report.report_id, name=report.title, sport=report.sport, range=report.range, generated_on=report.generated_date,
+        status=report.status, details=report.details, generated_by_name=full_name(coach.first_name, coach.last_name),
+    )
     return json_response(out.model_dump(), 201)
 
 

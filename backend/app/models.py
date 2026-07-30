@@ -148,6 +148,25 @@ class PerformanceFeedback(Base):
     attitude: Mapped[int] = mapped_column(Integer, default=3)
 
 
+class Announcement(Base):
+    """Additive — not in the ERD. Real authored messages (coach-to-team or
+    admin program-wide/per-sport), distinct from the notification bell's
+    derived reminders which aren't actual content anyone wrote."""
+
+    __tablename__ = "announcements"
+
+    announcement_id: Mapped[int] = mapped_column(primary_key=True)
+    author_id: Mapped[int] = mapped_column(ForeignKey("system_users.user_id"))
+    # coach_id set => posted by that coach, visible only to their own roster.
+    # coach_id null + sport set => admin, scoped to one sport.
+    # coach_id null + sport null => admin, program-wide.
+    coach_id: Mapped[int | None] = mapped_column(ForeignKey("coaches.coach_id"), nullable=True)
+    sport: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    title: Mapped[str] = mapped_column(String(160))
+    body: Mapped[str] = mapped_column(Text)
+    posted_date: Mapped[str] = mapped_column(String(40))
+
+
 class Season(Base):
     """Additive — not in the ERD. Seasons/terms aren't tracked as their own
     entity there, but reports need a real time boundary to scope against

@@ -4,8 +4,8 @@ from .. import models, schemas
 from ..auth import require_role
 from ..database import get_db
 from ..http import json_response, parse_body
-from ..serializers import full_name, user_out
-from ..utils import attendance_pct, eval_average
+from ..serializers import announcement_out, full_name, user_out
+from ..utils import attendance_pct, eval_average, visible_announcements
 
 player_bp = Blueprint("player", __name__, url_prefix="/player")
 player_bp.before_request(require_role("player"))
@@ -199,3 +199,12 @@ def update_profile():
     db.commit()
     db.refresh(player)
     return json_response(user_out(su, player))
+
+
+@player_bp.get("/announcements")
+def list_announcements():
+    db = get_db()
+    player = _current_player(db)
+    sport = player.coach.specialization if player.coach else None
+    rows = visible_announcements(db, sport=sport, coach_id=player.coach_id)
+    return json_response([announcement_out(db, a, g.current_user.user_id).model_dump() for a in rows])

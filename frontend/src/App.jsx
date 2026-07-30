@@ -12,6 +12,7 @@ import AdminPlayers from "./pages/admin/AdminPlayers";
 import AdminSessions from "./pages/admin/AdminSessions";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminSeasons from "./pages/admin/AdminSeasons";
+import AdminAnnouncements from "./pages/admin/AdminAnnouncements";
 import AdminStatistics from "./pages/admin/AdminStatistics";
 import AdminLoginHistory from "./pages/admin/AdminLoginHistory";
 import AdminArchive from "./pages/admin/AdminArchive";
@@ -21,6 +22,7 @@ import CoachRoster from "./pages/coach/CoachRoster";
 import CoachSessions from "./pages/coach/CoachSessions";
 import CoachAttendance from "./pages/coach/CoachAttendance";
 import CoachEvaluations from "./pages/coach/CoachEvaluations";
+import CoachAnnouncements from "./pages/coach/CoachAnnouncements";
 import CoachReports from "./pages/coach/CoachReports";
 import CoachProfile from "./pages/coach/CoachProfile";
 
@@ -28,6 +30,7 @@ import PlayerDashboard from "./pages/player/PlayerDashboard";
 import PlayerAttendance from "./pages/player/PlayerAttendance";
 import PlayerActivities from "./pages/player/PlayerActivities";
 import PlayerEvaluations from "./pages/player/PlayerEvaluations";
+import PlayerAnnouncements from "./pages/player/PlayerAnnouncements";
 import PlayerStats from "./pages/player/PlayerStats";
 import PlayerProfile from "./pages/player/PlayerProfile";
 
@@ -55,6 +58,7 @@ export default function App() {
               <Route path="/admin/sessions" element={<AdminSessions />} />
               <Route path="/admin/reports" element={<AdminReports />} />
               <Route path="/admin/seasons" element={<AdminSeasons />} />
+              <Route path="/admin/announcements" element={<AdminAnnouncements />} />
               <Route path="/admin/statistics" element={<AdminStatistics />} />
               <Route path="/admin/login-history" element={<AdminLoginHistory />} />
               <Route path="/admin/archive" element={<AdminArchive />} />
@@ -68,6 +72,7 @@ export default function App() {
               <Route path="/coach/sessions" element={<CoachSessions />} />
               <Route path="/coach/sessions/:sessionId/attendance" element={<CoachAttendance />} />
               <Route path="/coach/evaluations" element={<CoachEvaluations />} />
+              <Route path="/coach/announcements" element={<CoachAnnouncements />} />
               <Route path="/coach/reports" element={<CoachReports />} />
               <Route path="/coach/profile" element={<CoachProfile />} />
             </Route>
@@ -79,6 +84,7 @@ export default function App() {
               <Route path="/player/attendance" element={<PlayerAttendance />} />
               <Route path="/player/activities" element={<PlayerActivities />} />
               <Route path="/player/evaluations" element={<PlayerEvaluations />} />
+              <Route path="/player/announcements" element={<PlayerAnnouncements />} />
               <Route path="/player/stats" element={<PlayerStats />} />
               <Route path="/player/profile" element={<PlayerProfile />} />
             </Route>

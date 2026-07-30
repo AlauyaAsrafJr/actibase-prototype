@@ -6,8 +6,8 @@ from ..config import TODAY_LABEL
 from ..database import get_db
 from ..errors import ApiError
 from ..http import json_response, parse_body
-from ..serializers import full_name, user_out
-from ..utils import REPORT_RANGES, attendance_pct, last_eval_date, report_summary, season_window
+from ..serializers import announcement_out, full_name, user_out
+from ..utils import REPORT_RANGES, attendance_pct, last_eval_date, report_summary, season_window, visible_announcements
 
 coach_bp = Blueprint("coach", __name__, url_prefix="/coach")
 coach_bp.before_request(require_role("coach"))
@@ -406,6 +406,46 @@ def generate_report():
     db.refresh(report)
     out = schemas.ReportOut(id=report.report_id, name=report.title, sport=report.sport, range=report.range, generated_on=report.generated_date, status=report.status, details=report.details)
     return json_response(out.model_dump(), 201)
+
+
+# ---- announcements ----
+
+
+@coach_bp.get("/announcements")
+def list_announcements():
+    db = get_db()
+    coach = _current_coach(db)
+    rows = visible_announcements(db, sport=coach.specialization, coach_id=coach.coach_id)
+    return json_response([announcement_out(db, a, g.current_user.user_id).model_dump() for a in rows])
+
+
+@coach_bp.post("/announcements")
+def create_announcement():
+    payload = parse_body(schemas.AnnouncementCreate)
+    if not payload.title.strip() or not payload.body.strip():
+        raise ApiError("Title and body are required", 400)
+    db = get_db()
+    coach = _current_coach(db)
+    a = models.Announcement(
+        author_id=g.current_user.user_id, coach_id=coach.coach_id, sport=coach.specialization,
+        title=payload.title.strip(), body=payload.body.strip(), posted_date="Just now",
+    )
+    db.add(a)
+    db.commit()
+    db.refresh(a)
+    return json_response(announcement_out(db, a, g.current_user.user_id).model_dump(), 201)
+
+
+@coach_bp.delete("/announcements/<int:announcement_id>")
+def delete_announcement(announcement_id: int):
+    db = get_db()
+    coach = _current_coach(db)
+    a = db.get(models.Announcement, announcement_id)
+    if a is None or a.coach_id != coach.coach_id:
+        raise ApiError("Announcement not found", 404)
+    db.delete(a)
+    db.commit()
+    return "", 204
 
 
 # ---- profile ----

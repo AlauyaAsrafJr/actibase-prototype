@@ -14,6 +14,7 @@ from .config import TODAY_LABEL
 from .database import Base, SessionLocal, engine
 from .models import (
     Admin,
+    Announcement,
     ArchivedRecord,
     Attendance,
     Coach,
@@ -243,6 +244,18 @@ def seed(db: Session) -> None:
     # ---- seasons ----
     db.add(Season(name="AY 2025-2026, 2nd Semester", start_date="Jan 5, 2026", end_date="May 30, 2026", is_active=False))
     db.add(Season(name="AY 2026-2027, Summer Term", start_date="Jun 1, 2026", end_date="Aug 31, 2026", is_active=True))
+
+    # ---- announcements ----
+    db.add(Announcement(
+        author_id=dana_su.user_id, coach_id=None, sport=None,
+        title="Gym renovation this weekend", body="The main gym floor is being resurfaced Sat-Sun. All sessions move to the auxiliary courts — check with your coach for the room assignment.",
+        posted_date="Jul 11, 2026",
+    ))
+    db.add(Announcement(
+        author_id=marcus_su.user_id, coach_id=marcus.coach_id, sport=marcus.specialization,
+        title="Practice moved to 5 PM tomorrow", body="Facilities pushed our slot back an hour. Same location, bring both jerseys — we're scrimmaging after conditioning.",
+        posted_date="Jul 13, 2026",
+    ))
 
     db.commit()
     tyler = players_by_name["Tyler Owens"]

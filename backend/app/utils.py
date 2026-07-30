@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
 
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
 from . import models
@@ -8,6 +9,23 @@ from .config import TODAY_LABEL
 DATE_FORMAT = "%b %d, %Y"  # matches every stored date string, e.g. "Jul 20, 2026"
 
 REPORT_RANGES = ("Last 7 days", "Last 30 days", "All time")
+
+
+def visible_announcements(db: Session, sport: str | None = None, coach_id: int | None = None):
+    """Program-wide admin posts, always; sport-scoped admin posts, when the
+    viewer belongs to that sport; a coach's own posts, when the viewer is on
+    that coach's roster (or is that coach)."""
+    conditions = [and_(models.Announcement.coach_id.is_(None), models.Announcement.sport.is_(None))]
+    if sport:
+        conditions.append(and_(models.Announcement.coach_id.is_(None), models.Announcement.sport == sport))
+    if coach_id:
+        conditions.append(models.Announcement.coach_id == coach_id)
+    return (
+        db.query(models.Announcement)
+        .filter(or_(*conditions))
+        .order_by(models.Announcement.announcement_id.desc())
+        .all()
+    )
 
 
 def _parse_date(value: str) -> date | None:

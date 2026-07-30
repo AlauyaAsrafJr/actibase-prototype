@@ -6,7 +6,7 @@ from ..database import get_db
 from ..errors import ApiError
 from ..http import json_response, parse_body
 from ..security import hash_password
-from ..serializers import full_name, player_out, user_out
+from ..serializers import announcement_out, full_name, player_out, user_out
 from ..utils import REPORT_RANGES, attendance_pct, parse_date, report_summary, season_window
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -525,6 +525,47 @@ def delete_season(season_id: int):
     if season is None:
         raise ApiError("Season not found", 404)
     db.delete(season)
+    db.commit()
+    return "", 204
+
+
+# ---- announcements ----
+
+
+@admin_bp.get("/announcements")
+def list_announcements():
+    db = get_db()
+    rows = db.query(models.Announcement).order_by(models.Announcement.announcement_id.desc()).all()
+    return json_response([announcement_out(db, a, g.current_user.user_id).model_dump() for a in rows])
+
+
+@admin_bp.post("/announcements")
+def create_announcement():
+    payload = parse_body(schemas.AnnouncementCreate)
+    if not payload.title.strip() or not payload.body.strip():
+        raise ApiError("Title and body are required", 400)
+    db = get_db()
+    a = models.Announcement(
+        author_id=g.current_user.user_id,
+        coach_id=None,
+        sport=payload.sport.strip() if payload.sport and payload.sport.strip() else None,
+        title=payload.title.strip(),
+        body=payload.body.strip(),
+        posted_date="Just now",
+    )
+    db.add(a)
+    db.commit()
+    db.refresh(a)
+    return json_response(announcement_out(db, a, g.current_user.user_id).model_dump(), 201)
+
+
+@admin_bp.delete("/announcements/<int:announcement_id>")
+def delete_announcement(announcement_id: int):
+    db = get_db()
+    a = db.get(models.Announcement, announcement_id)
+    if a is None:
+        raise ApiError("Announcement not found", 404)
+    db.delete(a)
     db.commit()
     return "", 204
 

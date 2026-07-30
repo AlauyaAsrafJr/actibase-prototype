@@ -138,6 +138,23 @@ class SeasonOut(BaseModel):
     is_active: bool
 
 
+class AnnouncementCreate(BaseModel):
+    title: str
+    body: str
+    sport: str | None = None  # admin only — None means program-wide when posted by admin
+
+
+class AnnouncementOut(BaseModel):
+    id: int
+    title: str
+    body: str
+    author_name: str
+    author_role: str
+    audience: str
+    posted_date: str
+    mine: bool
+
+
 class ReportOut(BaseModel):
     id: int
     name: str

@@ -50,6 +50,44 @@ def user_out(su: models.SystemUser, profile) -> schemas.UserOut:
     )
 
 
+_ACCOUNT_PROFILE_MODEL = {"admin": models.Admin, "coach": models.Coach, "player": models.Player}
+
+
+def account_name(db, su: models.SystemUser | None) -> str:
+    """Resolve any account's display name regardless of role — used where
+    the author of something (e.g. an announcement) could be any of the
+    three account types."""
+    if su is None:
+        return "Unknown"
+    model = _ACCOUNT_PROFILE_MODEL.get(su.role, models.Player)
+    profile = db.query(model).filter(model.user_id == su.user_id).first()
+    if profile is None:
+        return "Unknown"
+    return full_name(profile.first_name, profile.last_name, getattr(profile, "middle_name", None))
+
+
+def announcement_out(db, a: models.Announcement, viewer_user_id: int) -> schemas.AnnouncementOut:
+    author_su = db.get(models.SystemUser, a.author_id)
+    if a.coach_id is not None:
+        coach = db.get(models.Coach, a.coach_id)
+        coach_name = full_name(coach.first_name, coach.last_name) if coach else "Coach"
+        audience = f"{coach_name}'s team"
+    elif a.sport:
+        audience = f"{a.sport} — all coaches & players"
+    else:
+        audience = "Program-wide"
+    return schemas.AnnouncementOut(
+        id=a.announcement_id,
+        title=a.title,
+        body=a.body,
+        author_name=account_name(db, author_su),
+        author_role=author_su.role if author_su else "unknown",
+        audience=audience,
+        posted_date=a.posted_date,
+        mine=(a.author_id == viewer_user_id),
+    )
+
+
 def player_out(db, su: models.SystemUser, player: models.Player) -> schemas.PlayerOut:
     coach_name = full_name(player.coach.first_name, player.coach.last_name) if player.coach else None
     return schemas.PlayerOut(
